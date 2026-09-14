@@ -754,15 +754,15 @@ function zoom_get_meeting_capacity($zoomhostid, $iswebinar = false) {
 function zoom_get_eligible_meeting_participants(context $context) {
     global $DB;
 
-    // Compose SQL query.
-    $sqlsnippets = get_enrolled_with_capabilities_join($context, '', 'mod/zoom:view', 0, true);
-    $sql = 'SELECT count(DISTINCT u.id)
-            FROM {user} u ' . $sqlsnippets->joins . ' WHERE ' . $sqlsnippets->wheres;
-
-    // Run query and count records.
-    $eligibleparticipantcount = $DB->count_records_sql($sql, $sqlsnippets->params);
-
-    return $eligibleparticipantcount;
+    if (function_exists('get_enrolled_with_capabilities_join')) {
+        $sqlsnippets = get_enrolled_with_capabilities_join($context, '', 'mod/zoom:view', 0, true);
+        $sql = 'SELECT count(DISTINCT u.id)
+                FROM {user} u ' . $sqlsnippets->joins . ' WHERE ' . $sqlsnippets->wheres;
+        return $DB->count_records_sql($sql, $sqlsnippets->params);
+    } else {
+        $users = get_enrolled_users($context, 'mod/zoom:view', 0, 'u.id', null, 0, 0, true);
+        return count($users);
+    }
 }
 
 /**
