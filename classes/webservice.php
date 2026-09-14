@@ -1422,3 +1422,7 @@ class webservice {
         return false;
     }
 }
+
+if (!class_exists('mod_zoom_webservice')) {
+    class_alias('webservice', 'mod_zoom_webservice');
+}

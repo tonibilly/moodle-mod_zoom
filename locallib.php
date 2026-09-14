@@ -1223,7 +1223,13 @@ function zoom_webservice() {
     static $service;
 
     if (empty($service)) {
-        $service = new mod_zoom_webservice();
+        if (class_exists('mod_zoom_webservice')) {
+            $service = new mod_zoom_webservice();
+        } else if (class_exists('webservice')) {
+            $service = new webservice();
+        } else if (class_exists('mod_zoom\webservice')) {
+            $service = new mod_zoom\webservice();
+        }
     }
 
     return $service;
