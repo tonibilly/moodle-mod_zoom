@@ -30,6 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig && $ADMIN->fulltree) {
     require_once($CFG->dirroot . '/mod/zoom/locallib.php');
+    require_once($CFG->dirroot . '/mod/zoom/classes/invitation.php');
 
     // Test whether connection works and display result to user.
     if (!CLI_SCRIPT && $PAGE->url == $CFG->wwwroot . '/' . $CFG->admin . '/settings.php?section=' . $settings->name) {

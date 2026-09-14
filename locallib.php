@@ -35,6 +35,7 @@ require_once($CFG->dirroot . '/mod/zoom/classes/bad_request_exception.php');
 require_once($CFG->dirroot . '/mod/zoom/classes/not_found_exception.php');
 require_once($CFG->dirroot . '/mod/zoom/classes/retry_failed_exception.php');
 require_once($CFG->dirroot . '/mod/zoom/classes/webservice.php');
+require_once($CFG->dirroot . '/mod/zoom/classes/invitation.php');
 
 // Constants.
 // Audio options.
