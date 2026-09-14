@@ -30,7 +30,7 @@ require_once($CFG->libdir . '/moodlelib.php');
 
 require_login();
 // Additional access checks in zoom_get_instance_setup().
-[$course, $cm, $zoom] = zoom_get_instance_setup();
+list($course, $cm, $zoom) = zoom_get_instance_setup();
 
 global $DB;
 
@@ -41,13 +41,13 @@ require_capability('mod/zoom:addinstance', $context);
 $uuid = required_param('uuid', PARAM_RAW);
 $export = optional_param('export', null, PARAM_ALPHA);
 
-$PAGE->set_url('/mod/zoom/participants.php', ['id' => $cm->id, 'uuid' => $uuid, 'export' => $export]);
+$PAGE->set_url('/mod/zoom/participants.php', array('id' => $cm->id, 'uuid' => $uuid, 'export' => $export));
 
 $activityname = $zoom->name;
 $strtitle = get_string('participants', 'mod_zoom');
 $PAGE->navbar->add($strtitle);
-$PAGE->set_title(format_string("$course->shortname: $activityname", true, ['context' => $context]));
-$PAGE->set_heading(format_string($course->fullname, true, ['context' => $context]));
+$PAGE->set_title(format_string("$course->shortname: $activityname", true, array('context' => $context)));
+$PAGE->set_heading(format_string($course->fullname, true, array('context' => $context)));
 $PAGE->set_pagelayout('incourse');
 
 $maskparticipantdata = get_config('zoom', 'maskparticipantdata');
@@ -56,22 +56,22 @@ if ($maskparticipantdata) {
     zoom_fatal_error(
         'participantdatanotavailable_help',
         'mod_zoom',
-        new moodle_url('/mod/zoom/report.php', ['id' => $cm->id])
+        new moodle_url('/mod/zoom/report.php', array('id' => $cm->id))
     );
 }
 
 $sessions = zoom_get_sessions_for_display($zoom->id);
-$participants = $sessions[$uuid]['participants'];
+$participants = isset($sessions[$uuid]['participants']) ? $sessions[$uuid]['participants'] : array();
 
 // Display the headers/etc if we're not exporting, or if there is no data.
 if (empty($export) || empty($participants)) {
     echo $OUTPUT->header();
-    echo $OUTPUT->heading(format_string($activityname, true, ['context' => $context]));
+    echo $OUTPUT->heading(format_string($activityname, true, array('context' => $context)));
     echo $OUTPUT->heading($strtitle, 4);
 
     // Stop if there is no data.
     if (empty($participants)) {
-        notice(get_string('noparticipants', 'mod_zoom'), new moodle_url('/mod/zoom/report.php', ['id' => $cm->id]));
+        notice(get_string('noparticipants', 'mod_zoom'), new moodle_url('/mod/zoom/report.php', array('id' => $cm->id)));
         echo $OUTPUT->footer();
         exit();
     }
@@ -80,7 +80,7 @@ if (empty($export) || empty($participants)) {
 // Loop through each user to generate id->idnumber mapping.
 $coursecontext = context_course::instance($course->id);
 $enrolled = get_enrolled_users($coursecontext);
-$moodleidtouids = [];
+$moodleidtouids = array();
 foreach ($enrolled as $user) {
     $moodleidtouids[$user->id] = $user->idnumber;
 }
@@ -88,34 +88,32 @@ foreach ($enrolled as $user) {
 $table = new html_table();
 // If we are exporting, then put email as a separate column.
 if (!empty($export)) {
-    $table->head = [
+    $table->head = array(
         get_string('idnumber'),
         get_string('name'),
         get_string('email'),
         get_string('jointime', 'mod_zoom'),
         get_string('leavetime', 'mod_zoom'),
         get_string('duration', 'mod_zoom'),
-    ];
+    );
 } else {
-    $table->head = [
+    $table->head = array(
         get_string('idnumber'),
         get_string('name'),
         get_string('jointime', 'mod_zoom'),
         get_string('leavetime', 'mod_zoom'),
         get_string('duration', 'mod_zoom'),
-    ];
+    );
 }
 
 foreach ($participants as $p) {
-    $row = [];
+    $row = array();
 
-    // Gets moodleuser so we can try to match information to Moodle database.
     $moodleuser = new stdClass();
     if (!empty($p->userid)) {
-        $moodleuser = $DB->get_record('user', ['id' => $p->userid], 'idnumber, email');
+        $moodleuser = $DB->get_record('user', array('id' => $p->userid), 'idnumber, email');
     }
 
-    // ID number.
     $idnumber = '';
     if (array_key_exists($p->userid, $moodleidtouids)) {
         $idnumber = $moodleidtouids[$p->userid];
@@ -123,7 +121,6 @@ foreach ($participants as $p) {
         $idnumber = $moodleuser->idnumber;
     }
 
-    // Name/email.
     $name = $p->name;
     $email = '';
     if (!empty($moodleuser->email)) {
@@ -132,30 +129,26 @@ foreach ($participants as $p) {
         $email = $p->user_email;
     }
 
-    // Put email in separate column if we are exporting to Excel.
     if (!empty($export)) {
-        $row = [
+        $row = array(
             $idnumber,
             $name,
             $email,
-        ];
+        );
     } else {
-        $safename = format_string($name, true, ['context' => $context]);
+        $safename = format_string($name, true, array('context' => $context));
         if (!empty($email)) {
             $safename = html_writer::link("mailto:$email", $safename);
         }
 
-        $row = [
+        $row = array(
             s($idnumber),
             $safename,
-        ];
+        );
     }
 
-    // Join/leave times.
     $row[] = userdate($p->join_time, get_string('strftimedatetimeshort', 'langconfig'));
     $row[] = userdate($p->leave_time, get_string('strftimedatetimeshort', 'langconfig'));
-
-    // Duration.
     $row[] = format_time($p->duration);
 
     $table->data[] = $row;
@@ -164,16 +157,16 @@ foreach ($participants as $p) {
 if ($export != 'xls') {
     echo html_writer::table($table);
 
-    $exporturl = new moodle_url('/mod/zoom/participants.php', [
+    $exporturl = new moodle_url('/mod/zoom/participants.php', array(
         'id' => $cm->id,
         'uuid' => $uuid,
         'export' => 'xls',
-    ]);
+    ));
     $xlsstring = get_string('application/vnd.ms-excel', 'mimetypes');
     $xlsicon = html_writer::img(
-        $OUTPUT->image_url('f/spreadsheet'),
+        $OUTPUT->pix_url('f/spreadsheet'),
         $xlsstring,
-        ['title' => $xlsstring, 'class' => 'mimetypeicon']
+        array('title' => $xlsstring, 'class' => 'mimetypeicon')
     );
     echo get_string('export', 'mod_zoom') . ': ' . html_writer::link($exporturl, $xlsicon);
 

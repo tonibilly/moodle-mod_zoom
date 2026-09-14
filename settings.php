@@ -100,10 +100,10 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('apiendpoint', 'mod_zoom'),
         new lang_string('apiendpoint_desc', 'mod_zoom'),
         ZOOM_API_ENDPOINT_GLOBAL,
-        [
+        array(
             ZOOM_API_ENDPOINT_GLOBAL => new lang_string('apiendpoint_global', 'mod_zoom'),
             ZOOM_API_ENDPOINT_EU => new lang_string('apiendpoint_eu', 'mod_zoom'),
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configtext(
@@ -111,7 +111,7 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('option_proxyhost', 'mod_zoom'),
         new lang_string('option_proxyhost_desc', 'mod_zoom'),
         '',
-        '/^[a-zA-Z0-9.-]+:[0-9]+$|^$/'
+        '/^[a-zA-Z0-9.-]+:array(0-9)+$|^$/'
     ));
 
     $settings->add(new admin_setting_configselect(
@@ -164,7 +164,7 @@ if ($hassiteconfig && $ADMIN->fulltree) {
 
     // Only call to the web services and load the setting if the connection is OK.
     if (isset($status) && $status === 'connectionok') {
-        $zoomgroups = [];
+        $zoomgroups = array();
         $groups = zoom_webservice()->get_groups();
         foreach ($groups as $group) {
             $zoomgroups[$group->id] = $group->name;
@@ -174,7 +174,7 @@ if ($hassiteconfig && $ADMIN->fulltree) {
             'zoom/protectedgroups',
             new lang_string('protectedgroups', 'mod_zoom'),
             new lang_string('protectedgroups_desc', 'mod_zoom'),
-            [],
+            array(),
             $zoomgroups
         ));
     }
@@ -186,8 +186,8 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('globalsettings_desc', 'mod_zoom')
     ));
 
-    $jointimechoices = [0, 5, 10, 15, 20, 30, 45, 60];
-    $jointimeselect = [];
+    $jointimechoices = array(0, 5, 10, 15, 20, 30, 45, 60);
+    $jointimeselect = array();
     foreach ($jointimechoices as $minutes) {
         $jointimeselect[$minutes] = $minutes . ' ' . get_string('mins');
     }
@@ -242,12 +242,12 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('unamedisplay', 'mod_zoom'),
         new lang_string('unamedisplay_help', 'mod_zoom'),
         'fullname',
-        [
+        array(
             'fullname' => new lang_string('displayfullname', 'mod_zoom'),
             'firstname' => new lang_string('displayfirstname', 'mod_zoom'),
             'idfullname' => new lang_string('displayidfullname', 'mod_zoom'),
             'id' => new lang_string('displayid', 'mod_zoom'),
-        ]
+        )
     ));
 
     // Supplementary features settings.
@@ -262,11 +262,11 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('webinar', 'mod_zoom'),
         new lang_string('webinar_desc', 'mod_zoom'),
         ZOOM_WEBINAR_ALWAYSSHOW,
-        [
+        array(
             ZOOM_WEBINAR_DISABLE => new lang_string('webinar_disable', 'mod_zoom'),
             ZOOM_WEBINAR_SHOWONLYIFLICENSE => new lang_string('webinar_showonlyiflicense', 'mod_zoom'),
             ZOOM_WEBINAR_ALWAYSSHOW => new lang_string('webinar_alwaysshow', 'mod_zoom'),
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configcheckbox(
@@ -283,11 +283,11 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('encryptiontype', 'mod_zoom'),
         new lang_string('encryptiontype_desc', 'mod_zoom'),
         ZOOM_ENCRYPTION_SHOWONLYIFPOSSIBLE,
-        [
+        array(
             ZOOM_ENCRYPTION_DISABLE => new lang_string('encryptiontype_disable', 'mod_zoom'),
             ZOOM_ENCRYPTION_SHOWONLYIFPOSSIBLE => new lang_string('encryptiontype_showonlyife2epossible', 'mod_zoom'),
             ZOOM_ENCRYPTION_ALWAYSSHOW => new lang_string('encryptiontype_alwaysshow', 'mod_zoom'),
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configselect(
@@ -295,23 +295,23 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('schedulingprivilege', 'mod_zoom'),
         new lang_string('schedulingprivilege_desc', 'mod_zoom'),
         ZOOM_SCHEDULINGPRIVILEGE_ENABLE,
-        [
+        array(
             ZOOM_SCHEDULINGPRIVILEGE_DISABLE => new lang_string('schedulingprivilege_disable', 'mod_zoom'),
             ZOOM_SCHEDULINGPRIVILEGE_ENABLE => new lang_string('schedulingprivilege_enable', 'mod_zoom'),
-        ]
+        )
     ));
 
     $alternativehostsroles = zoom_get_selectable_alternative_hosts_rolestring(context_system::instance());
     $settings->add(new admin_setting_configselect(
         'zoom/showalternativehosts',
         new lang_string('alternative_hosts', 'mod_zoom'),
-        new lang_string('alternative_hosts_desc', 'mod_zoom', ['roles' => $alternativehostsroles]),
+        new lang_string('alternative_hosts_desc', 'mod_zoom', array('roles' => $alternativehostsroles)),
         ZOOM_ALTERNATIVEHOSTS_INPUTFIELD,
-        [
+        array(
             ZOOM_ALTERNATIVEHOSTS_DISABLE => new lang_string('alternative_hosts_disable', 'mod_zoom'),
             ZOOM_ALTERNATIVEHOSTS_INPUTFIELD => new lang_string('alternative_hosts_inputfield', 'mod_zoom'),
             ZOOM_ALTERNATIVEHOSTS_PICKER => new lang_string('alternative_hosts_picker', 'mod_zoom'),
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configselect(
@@ -319,10 +319,10 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('meetingcapacitywarning', 'mod_zoom'),
         new lang_string('meetingcapacitywarning_desc', 'mod_zoom'),
         ZOOM_CAPACITYWARNING_ENABLE,
-        [
+        array(
             ZOOM_CAPACITYWARNING_DISABLE => new lang_string('meetingcapacitywarning_disable', 'mod_zoom'),
             ZOOM_CAPACITYWARNING_ENABLE => new lang_string('meetingcapacitywarning_enable', 'mod_zoom'),
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configselect(
@@ -330,10 +330,10 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('allmeetings', 'mod_zoom'),
         new lang_string('allmeetings_desc', 'mod_zoom'),
         ZOOM_ALLMEETINGS_ENABLE,
-        [
+        array(
             ZOOM_ALLMEETINGS_DISABLE => new lang_string('allmeetings_disable', 'mod_zoom'),
             ZOOM_ALLMEETINGS_ENABLE => new lang_string('allmeetings_enable', 'mod_zoom'),
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configselect(
@@ -341,10 +341,10 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('downloadical', 'mod_zoom'),
         new lang_string('downloadical_desc', 'mod_zoom'),
         ZOOM_DOWNLOADICAL_ENABLE,
-        [
+        array(
             ZOOM_DOWNLOADICAL_DISABLE => new lang_string('downloadical_disable', 'mod_zoom'),
             ZOOM_DOWNLOADICAL_ENABLE => new lang_string('downloadical_enable', 'mod_zoom'),
-        ]
+        )
     ));
 
     $sendicalnotificationshelp = get_string('sendicalnotifications_help', 'mod_zoom');
@@ -403,10 +403,10 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         'zoom/requirepasscode',
         new lang_string('requirepasscode', 'mod_zoom'),
         new lang_string('requirepasscode_help', 'mod_zoom'),
-        [
+        array(
             'value' => 1,
             'locked' => true,
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configselect(
@@ -414,10 +414,10 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('option_encryption_type', 'mod_zoom'),
         new lang_string('option_encryption_type_help', 'mod_zoom'),
         ZOOM_ENCRYPTION_TYPE_ENHANCED,
-        [
+        array(
             ZOOM_ENCRYPTION_TYPE_ENHANCED => new lang_string('option_encryption_type_enhancedencryption', 'mod_zoom'),
             ZOOM_ENCRYPTION_TYPE_E2EE => new lang_string('option_encryption_type_endtoendencryption', 'mod_zoom'),
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configcheckbox(
@@ -479,11 +479,11 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('option_audio', 'mod_zoom'),
         new lang_string('option_audio_help', 'mod_zoom'),
         ZOOM_AUDIO_BOTH,
-        [
+        array(
             ZOOM_AUDIO_TELEPHONY => new lang_string('audio_telephony', 'mod_zoom'),
             ZOOM_AUDIO_VOIP => new lang_string('audio_voip', 'mod_zoom'),
             ZOOM_AUDIO_BOTH => new lang_string('audio_both', 'mod_zoom'),
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configcheckbox(
@@ -500,12 +500,12 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('option_auto_recording', 'mod_zoom'),
         new lang_string('option_auto_recording_help', 'mod_zoom'),
         ZOOM_AUTORECORDING_USERDEFAULT,
-        [
+        array(
             ZOOM_AUTORECORDING_NONE => new lang_string('autorecording_none', 'mod_zoom'),
             ZOOM_AUTORECORDING_USERDEFAULT => new lang_string('autorecording_userdefault', 'mod_zoom'),
             ZOOM_AUTORECORDING_LOCAL => new lang_string('autorecording_local', 'mod_zoom'),
             ZOOM_AUTORECORDING_CLOUD => new lang_string('autorecording_cloud', 'mod_zoom'),
-        ]
+        )
     ));
 
     $settings->add(new admin_setting_configcheckbox(
@@ -595,11 +595,11 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         new lang_string('gradingmethod', 'mod_zoom'),
         new lang_string('gradingmethod_help', 'mod_zoom'),
         'entry',
-        [
+        array(
              // The user gets the full score when clicking to join the session through Moodle.
             'entry' => new lang_string('gradingentry', 'mod_zoom'),
              // The user is graded based on how long they attended the actual session.
             'period' => new lang_string('gradingperiod', 'mod_zoom'),
-        ]
+        )
     ));
 }

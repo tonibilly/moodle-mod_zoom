@@ -35,14 +35,14 @@ if (!get_config('zoom', 'viewrecordings')) {
     throw new moodle_exception('recordingnotvisible', 'mod_zoom');
 }
 
-[$course, $cm, $zoom] = zoom_get_instance_setup();
+list($course, $cm, $zoom) = zoom_get_instance_setup();
 require_login($course, true, $cm);
 
 $context = context_module::instance($cm->id);
 $PAGE->set_context($context);
 require_capability('mod/zoom:addinstance', $context);
 
-$urlparams = ['id' => $cm->id];
+$urlparams = array('id' => $cm->id);
 $url = new moodle_url('/mod/zoom/recordings.php', $urlparams);
 if (!confirm_sesskey()) {
     redirect($url, get_string('sesskeyinvalid', 'mod_zoom'));
@@ -51,11 +51,11 @@ if (!confirm_sesskey()) {
 // Find the video recording and audio only recording pair that matches the criteria.
 $recordings = $DB->get_records(
     'zoom_meeting_recordings',
-    [
+    array(
         'zoomid' => $zoom->id,
         'meetinguuid' => $meetinguuid,
         'recordingstart' => $recordingstart,
-    ]
+    )
 );
 if (empty($recordings)) {
     throw new moodle_exception('recordingnotfound', 'mod_zoom');

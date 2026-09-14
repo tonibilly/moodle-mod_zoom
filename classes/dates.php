@@ -48,10 +48,10 @@ class dates extends activity_dates {
 
         // For meeting with no fixed time, no time info needed on course page.
         if ($recurring && $recurrencetype == \ZOOM_RECURRINGTYPE_NOTIME) {
-            return [];
+            return array();
         }
 
-        $dates = [];
+        $dates = array();
 
         if ($starttime) {
             $now = time();
@@ -67,11 +67,11 @@ class dates extends activity_dates {
                 $meetimgtimestamp = $starttime;
             }
 
-            $dates[] = [
+            $dates[] = array(
                 'dataid' => $dataid,
                 'label' => get_string($labelid, 'mod_zoom'),
                 'timestamp' => $meetimgtimestamp,
-            ];
+            );
         }
 
         return $dates;

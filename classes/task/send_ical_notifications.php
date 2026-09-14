@@ -90,12 +90,12 @@ class send_ical_notifications extends scheduled_task {
         AND timemodified >= :onehourago
         AND timemodified <= :tenminutesago';
 
-        return $DB->get_records_sql($sql, [
+        return $DB->get_records_sql($sql, array(
             'zoommodulename' => 'zoom',
             'zoomeventtype' => 'zoom',
             'onehourago' => time() - (60 * 60),
             'tenminutesago' => time() - (60 * 10),
-        ]);
+        ));
     }
 
     /**
@@ -106,7 +106,7 @@ class send_ical_notifications extends scheduled_task {
     private function get_notification_time(int $zoomeventid) {
         global $DB;
 
-        $notificationtime = $DB->get_field('zoom_ical_notifications', 'notificationtime', ['zoomeventid' => $zoomeventid]);
+        $notificationtime = $DB->get_field('zoom_ical_notifications', 'notificationtime', array('zoomeventid' => $zoomeventid));
         if (!$notificationtime) {
             $notificationtime = 0;
         }
@@ -136,13 +136,13 @@ class send_ical_notifications extends scheduled_task {
 
         $users = $this->get_users_to_notify((int) $zoomevent->instance, (int) $zoomevent->courseid);
 
-        $zoom = $DB->get_record('zoom', ['id' => $zoomevent->instance], 'id,registration,join_url,meeting_id,webinar');
+        $zoom = $DB->get_record('zoom', array('id' => $zoomevent->instance), 'id,registration,join_url,meeting_id,webinar');
 
         $filestorage = get_file_storage();
 
         // Apply filters to event name and description.
         $cminfo = get_coursemodule_from_instance('zoom', (int) $zoomevent->instance, (int) $zoomevent->courseid);
-        $formatoptions = [];
+        $formatoptions = array();
         if ($cminfo && !empty($cminfo->id)) {
             $formatoptions['context'] = context_module::instance($cminfo->id);
         }
@@ -160,7 +160,7 @@ class send_ical_notifications extends scheduled_task {
         $zoomeventplaindesc = strip_tags($zoomevent->description);
 
         // Setup zoom event url.
-        $zoomurlwrapper = new moodle_url('/mod/zoom/view.php', ['id' => $cminfo->id]);
+        $zoomurlwrapper = new moodle_url('/mod/zoom/view.php', array('id' => $cminfo->id));
         $zoomurl = $zoomurlwrapper->out(false);
 
         foreach ($users as $user) {
@@ -171,14 +171,14 @@ class send_ical_notifications extends scheduled_task {
 
             $ical = $this->create_ical_object($zoomevent, $zoom, $zoomeventplaindesc, $zoomurl, $user->email);
 
-            $filerecord = [
+            $filerecord = array(
                 'contextid' => context_user::instance($user->id)->id,
                 'component' => 'user',
                 'filearea' => 'draft',
                 'itemid' => file_get_unused_draft_itemid(),
                 'filepath' => '/',
                 'filename' => clean_filename('icalexport.ics'),
-            ];
+            );
 
             $serializedical = $ical->serialize();
             if (!$serializedical || empty($serializedical)) {
@@ -251,7 +251,7 @@ class send_ical_notifications extends scheduled_task {
         }
 
         $noreplyuser = core_user::get_noreply_user();
-        $icalevent->add_property('organizer', 'mailto:' . $noreplyuser->email, ['cn' => $SITE->fullname]);
+        $icalevent->add_property('organizer', 'mailto:' . $noreplyuser->email, array('cn' => $SITE->fullname));
         // Need to strip out the double quotations around the 'organizer' values - probably a bug in the core code.
         $organizervalue = $icalevent->properties['ORGANIZER'][0]->value;
         $icalevent->properties['ORGANIZER'][0]->value = substr($organizervalue, 1, -1);
@@ -275,7 +275,7 @@ class send_ical_notifications extends scheduled_task {
         $users = get_enrolled_users($cminfo->context, 'mod/zoom:view', 0, 'u.*', null, 0, 0, true);
 
         if (empty($users)) {
-            return [];
+            return array();
         }
 
         $info = new info_module($cminfo);

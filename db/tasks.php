@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = [
-    [
+$tasks = array(
+    array(
         'classname' => 'mod_zoom\task\update_meetings',
         'blocking' => 0,
         'minute' => '30',
@@ -33,8 +33,8 @@ $tasks = [
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*',
-    ],
-    [
+    ),
+    array(
         'classname' => 'mod_zoom\task\get_meeting_reports',
         'blocking' => 0,
         'minute' => '0',
@@ -42,8 +42,8 @@ $tasks = [
         'day' => '*',
         'dayofweek' => '*',
         'month' => '*',
-    ],
-    [
+    ),
+    array(
         'classname' => 'mod_zoom\task\update_tracking_fields',
         'blocking' => 0,
         'minute' => '0',
@@ -51,8 +51,8 @@ $tasks = [
         'day' => '*',
         'dayofweek' => '*',
         'month' => '*',
-    ],
-    [
+    ),
+    array(
         'classname' => 'mod_zoom\task\get_meeting_recordings',
         'blocking' => 0,
         'minute' => '0',
@@ -60,8 +60,8 @@ $tasks = [
         'day' => '*',
         'dayofweek' => '*',
         'month' => '*',
-    ],
-    [
+    ),
+    array(
         'classname' => 'mod_zoom\task\delete_meeting_recordings',
         'blocking' => 0,
         'minute' => '0',
@@ -69,8 +69,8 @@ $tasks = [
         'day' => '*',
         'dayofweek' => '*',
         'month' => '*',
-    ],
-    [
+    ),
+    array(
         'classname' => 'mod_zoom\task\send_ical_notifications',
         'blocking' => 0,
         'minute' => '*/5',
@@ -78,5 +78,5 @@ $tasks = [
         'day' => '*',
         'dayofweek' => '*',
         'month' => '*',
-    ],
-];
+    ),
+);

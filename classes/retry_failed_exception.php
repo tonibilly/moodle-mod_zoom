@@ -22,9 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_zoom;
-
-use stdClass;
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Couldn't succeed within the allowed number of retries.

@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$addons = [
+$addons = array(
     "mod_zoom" => [
         "handlers" => [
             'zoommeetingdetails' => [
@@ -42,20 +42,20 @@ $addons = [
             ],
         ],
         'lang' => [
-            ['pluginname', 'zoom'],
-            ['join_meeting', 'zoom'],
-            ['unavailable', 'zoom'],
-            ['meeting_time', 'zoom'],
-            ['duration', 'zoom'],
-            ['passwordprotected', 'zoom'],
-            ['password', 'zoom'],
-            ['joinlink', 'zoom'],
-            ['joinbeforehost', 'zoom'],
-            ['starthostjoins', 'zoom'],
-            ['startpartjoins', 'zoom'],
-            ['option_audio', 'zoom'],
-            ['status', 'zoom'],
-            ['recurringmeetinglong', 'zoom'],
+            array('pluginname', 'zoom'),
+            array('join_meeting', 'zoom'),
+            array('unavailable', 'zoom'),
+            array('meeting_time', 'zoom'),
+            array('duration', 'zoom'),
+            array('passwordprotected', 'zoom'),
+            array('password', 'zoom'),
+            array('joinlink', 'zoom'),
+            array('joinbeforehost', 'zoom'),
+            array('starthostjoins', 'zoom'),
+            array('startpartjoins', 'zoom'),
+            array('option_audio', 'zoom'),
+            array('status', 'zoom'),
+            array('recurringmeetinglong', 'zoom'),
         ],
     ],
-];
+);

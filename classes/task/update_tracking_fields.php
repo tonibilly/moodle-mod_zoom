@@ -59,14 +59,14 @@ class update_tracking_fields extends scheduled_task {
         }
 
         // Required scopes for tracking fields.
-        $requiredscopes = [
+        $requiredscopes = array(
             'classic' => [
                 'tracking_fields:read:admin',
             ],
             'granular' => [
                 'tracking_field:read:list_tracking_fields:admin',
             ],
-        ];
+        );
 
         // Checking for missing scopes.
         $missingscopes = $service->check_scopes($requiredscopes);

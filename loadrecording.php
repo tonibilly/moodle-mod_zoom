@@ -33,7 +33,7 @@ if (!get_config('zoom', 'viewrecordings')) {
     throw new moodle_exception('recordingnotvisible', 'mod_zoom');
 }
 
-[$course, $cm, $zoom] = zoom_get_instance_setup();
+list($course, $cm, $zoom) = zoom_get_instance_setup();
 require_login($course, true, $cm);
 
 $context = context_module::instance($cm->id);
@@ -42,17 +42,17 @@ $PAGE->set_context($context);
 require_capability('mod/zoom:view', $context);
 
 // Only show recording that is visble and valid.
-$params = [
+$params = array(
     'id' => $recordingid,
     'showrecording' => 1,
     'zoomid' => $zoom->id,
-];
+);
 $rec = $DB->get_record('zoom_meeting_recordings', $params);
 if (empty($rec)) {
     throw new moodle_exception('recordingnotfound', 'mod_zoom');
 }
 
-$params = ['recordingsid' => $rec->id, 'userid' => $USER->id];
+$params = array('recordingsid' => $rec->id, 'userid' => $USER->id);
 $now = time();
 
 // Keep track of whether someone has viewed the recording or not.

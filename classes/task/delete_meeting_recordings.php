@@ -61,14 +61,14 @@ class delete_meeting_recordings extends scheduled_task {
         }
 
         // Required scopes for deleting meeting recordings.
-        $requiredscopes = [
+        $requiredscopes = array(
             'classic' => [
                 'recording:read:admin',
             ],
             'granular' => [
                 'cloud_recording:read:list_recording_files:admin',
             ],
-        ];
+        );
 
         // Checking for missing scopes.
         $missingscopes = $service->check_scopes($requiredscopes);
@@ -105,7 +105,7 @@ class delete_meeting_recordings extends scheduled_task {
                 // If recordings are in Moodle but not in Zoom, we need to remove them from Moodle as well.
                 foreach ($recordings as $zoomrecordingid => $recording) {
                     mtrace('Deleting recording with id: ' . $zoomrecordingid . ' because the recording is no longer in Zoom.');
-                    $DB->delete_records('zoom_meeting_recordings', ['zoomrecordingid' => $zoomrecordingid]);
+                    $DB->delete_records('zoom_meeting_recordings', array('zoomrecordingid' => $zoomrecordingid));
                 }
             } catch (moodle_exception $e) {
                 mtrace('Exception occurred: ' . $e->getMessage());

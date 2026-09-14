@@ -51,7 +51,7 @@ class get_meeting_reports extends scheduled_task {
      * Percentage in which we want similar_text to reach before we consider
      * using its results.
      */
-    private const SIMILARNAME_THRESHOLD = 60;
+    const SIMILARNAME_THRESHOLD = 60;
 
     /**
      * Used to determine if debugging is turned on or off for outputting messages.
@@ -143,17 +143,17 @@ class get_meeting_reports extends scheduled_task {
 
         $recordedallmeetings = true;
 
-        $dashboardscopes = [
+        $dashboardscopes = array(
             'dashboard_meetings:read:admin',
             'dashboard_webinars:read:admin',
             'dashboard:read:list_meetings:admin',
             'dashboard:read:list_webinars:admin',
-        ];
+        );
 
-        $reportscopes = [
+        $reportscopes = array(
             'report:read:admin',
             'report:read:list_users:admin',
-        ];
+        );
 
         // Can only query on $hostuuids using Report API.
         if (empty($hostuuids) && $this->service->has_scope($dashboardscopes)) {
@@ -167,8 +167,8 @@ class get_meeting_reports extends scheduled_task {
 
         // Sort all meetings based on end_time so that we know where to pick
         // up again if we run out of API calls.
-        $allmeetings = array_map([$this, 'normalize_meeting'], $allmeetings);
-        usort($allmeetings, [$this, 'cmp']);
+        $allmeetings = array_map(array($this, 'normalize_meeting'), $allmeetings);
+        usort($allmeetings, array($this, 'cmp'));
 
         mtrace("Processing " . count($allmeetings) . " meetings");
 
@@ -226,9 +226,9 @@ class get_meeting_reports extends scheduled_task {
         $name = null;
 
         // Consolidate fields.
-        $participant->name = $participant->name ?? $participant->user_name ?? '';
-        $participant->id = $participant->id ?? $participant->participant_user_id ?? '';
-        $participant->user_email = $participant->user_email ?? $participant->email ?? '';
+        $participant->name = isset($participant->name) ? $participant->name : (isset($participant->user_name) ? $participant->user_name : '');
+        $participant->id = isset($participant->id) ? $participant->id : (isset($participant->participant_user_id) ? $participant->participant_user_id : '');
+        $participant->user_email = isset($participant->user_email) ? $participant->user_email : (isset($participant->email) ? $participant->email : '');
 
         // Cleanup the name. For some reason # gets into the name instead of a comma.
         $participant->name = str_replace('#', ',', $participant->name);
@@ -246,7 +246,7 @@ class get_meeting_reports extends scheduled_task {
             // Sometimes uuid is blank from Zoom.
             $participantmatches = $DB->get_records(
                 'zoom_meeting_participants',
-                ['uuid' => $participant->id],
+                array('uuid' => $participant->id),
                 null,
                 'id, userid, name'
             );
@@ -273,11 +273,11 @@ class get_meeting_reports extends scheduled_task {
                 $name = $names[$moodleuserid];
             } else if (
                 !empty($participant->user_email)
-                && ($moodleuser = $DB->get_record('user', [
+                && ($moodleuser = $DB->get_record('user', array(
                     'email' => $participant->user_email,
                     'deleted' => 0,
                     'suspended' => 0,
-                ], '*', IGNORE_MULTIPLE))
+                ), '*', IGNORE_MULTIPLE))
             ) {
                 // This is the case where someone attends the meeting, but is not enrolled in the class.
                 $moodleuserid = $moodleuser->id;
@@ -294,7 +294,7 @@ class get_meeting_reports extends scheduled_task {
 
         if ($participant->user_email === '') {
             if (!empty($moodleuserid)) {
-                $participant->user_email = $DB->get_field('user', 'email', ['id' => $moodleuserid]);
+                $participant->user_email = $DB->get_field('user', 'email', array('id' => $moodleuserid));
             } else {
                 $participant->user_email = null;
             }
@@ -327,15 +327,15 @@ class get_meeting_reports extends scheduled_task {
         // Loop through each user to generate name->uids mapping.
         $coursecontext = context_course::instance($courseid);
         $enrolled = get_enrolled_users($coursecontext);
-        $names = [];
-        $emails = [];
+        $names = array();
+        $emails = array();
         foreach ($enrolled as $user) {
             $name = strtoupper(fullname($user));
             $names[$user->id] = $name;
             $emails[$user->id] = strtoupper(zoom_get_api_identifier($user));
         }
 
-        return [$names, $emails];
+        return array($names, $emails);
     }
 
     /**
@@ -368,7 +368,7 @@ class get_meeting_reports extends scheduled_task {
             $activehostsuuids = $hostuuids;
         }
 
-        $allmeetings = [];
+        $allmeetings = array();
         $localhosts = $DB->get_records_menu('zoom', null, '', 'id, host_id');
 
         mtrace("Processing " . count($activehostsuuids) . " active host uuids");
@@ -376,7 +376,7 @@ class get_meeting_reports extends scheduled_task {
         foreach ($activehostsuuids as $activehostsuuid) {
             // This API call returns information about meetings and webinars,
             // don't need extra functionality for webinars.
-            $usersmeetings = [];
+            $usersmeetings = array();
             if (in_array($activehostsuuid, $localhosts)) {
                 $this->debugmsg('Getting meetings for host uuid ' . $activehostsuuid);
                 try {
@@ -416,22 +416,22 @@ class get_meeting_reports extends scheduled_task {
     public function get_meetings_via_dashboard($start, $end) {
         mtrace('Using Dashboard API');
 
-        $meetingscopes = [
+        $meetingscopes = array(
             'dashboard_meetings:read:admin',
             'dashboard:read:list_meetings:admin',
-        ];
+        );
 
-        $webinarscopes = [
+        $webinarscopes = array(
             'dashboard_webinars:read:admin',
             'dashboard:read:list_webinars:admin',
-        ];
+        );
 
-        $meetings = [];
+        $meetings = array();
         if ($this->service->has_scope($meetingscopes)) {
             $meetings = $this->service->get_meetings($start, $end);
         }
 
-        $webinars = [];
+        $webinars = array();
         if ($this->service->has_scope($webinarscopes)) {
             $webinars = $this->service->get_webinars($start, $end);
         }
@@ -466,8 +466,8 @@ class get_meeting_reports extends scheduled_task {
         }
 
         $nametomatch = strtoupper($nametomatch);
-        $similartextscores = [];
-        $levenshteinscores = [];
+        $similartextscores = array();
+        $levenshteinscores = array();
         foreach ($rosternames as $name) {
             similar_text($nametomatch, $name, $percentage);
             if ($percentage > self::SIMILARNAME_THRESHOLD) {
@@ -529,7 +529,7 @@ class get_meeting_reports extends scheduled_task {
 
         // If meeting doesn't exist in the zoom database, the instance is
         // deleted, and we don't need reports for these.
-        if (!($zoomrecord = $DB->get_record('zoom', ['meeting_id' => $meeting->meeting_id], '*', IGNORE_MULTIPLE))) {
+        if (!($zoomrecord = $DB->get_record('zoom', array('meeting_id' => $meeting->meeting_id), '*', IGNORE_MULTIPLE))) {
             mtrace('Meeting does not exist locally; skipping');
             return true;
         }
@@ -537,13 +537,13 @@ class get_meeting_reports extends scheduled_task {
         $meeting->zoomid = $zoomrecord->id;
 
         // Insert or update meeting details.
-        if (!($DB->record_exists('zoom_meeting_details', ['uuid' => $meeting->uuid]))) {
+        if (!($DB->record_exists('zoom_meeting_details', array('uuid' => $meeting->uuid)))) {
             $this->debugmsg('Inserting zoom_meeting_details');
             $detailsid = $DB->insert_record('zoom_meeting_details', $meeting);
         } else {
             // Details entry already exists, so update it.
             $this->debugmsg('Updating zoom_meeting_details');
-            $detailsid = $DB->get_field('zoom_meeting_details', 'id', ['uuid' => $meeting->uuid]);
+            $detailsid = $DB->get_field('zoom_meeting_details', 'id', array('uuid' => $meeting->uuid));
             $meeting->id = $detailsid;
             $DB->update_record('zoom_meeting_details', $meeting);
         }
@@ -559,7 +559,7 @@ class get_meeting_reports extends scheduled_task {
         }
 
         // Loop through each user to generate name->uids mapping.
-        [$names, $emails] = $this->get_enrollments($zoomrecord->course);
+        list($names, $emails) = $this->get_enrollments($zoomrecord->course);
 
         $this->debugmsg(sprintf('Processing %d participants', count($participants)));
 
@@ -568,7 +568,7 @@ class get_meeting_reports extends scheduled_task {
         try {
             $transaction = $DB->start_delegated_transaction();
 
-            $count = $DB->count_records('zoom_meeting_participants', ['detailsid' => $detailsid]);
+            $count = $DB->count_records('zoom_meeting_participants', array('detailsid' => $detailsid));
             if (!empty($count)) {
                 $this->debugmsg(sprintf('Existing participant records: %d', $count));
                 // No need to delete old records, we don't insert matching records.
@@ -586,14 +586,14 @@ class get_meeting_reports extends scheduled_task {
                 $participant = $this->format_participant($rawparticipant, $detailsid, $names, $emails);
 
                 // These conditions are enough.
-                $conditions = [
+                $conditions = array(
                     'name' => $participant['name'],
                     'userid' => $participant['userid'],
                     'detailsid' => $participant['detailsid'],
                     'zoomuserid' => $participant['zoomuserid'],
                     'join_time' => $participant['join_time'],
                     'leave_time' => $participant['leave_time'],
-                ];
+                );
 
                 // Check if the record already exists.
                 if ($record = $DB->get_record('zoom_meeting_participants', $conditions)) {
@@ -662,7 +662,7 @@ class get_meeting_reports extends scheduled_task {
         // After check and testing, these timings are the actual meeting timings returned from zoom
         // ... (i.e.when the host start and end the meeting).
         // Not like those on 'zoom' table which represent the settings from zoom activity.
-        $meetingtime = $DB->get_record('zoom_meeting_details', ['id' => $detailsid], 'start_time, end_time');
+        $meetingtime = $DB->get_record('zoom_meeting_details', array('id' => $detailsid), 'start_time, end_time');
         if (empty($zoomrecord->recurring)) {
             $end = min($meetingtime->end_time, $zoomrecord->start_time + $zoomrecord->duration);
             $start = max($meetingtime->start_time, $zoomrecord->start_time);
@@ -672,11 +672,11 @@ class get_meeting_reports extends scheduled_task {
         }
 
         // Get the required records again.
-        $records = $DB->get_records('zoom_meeting_participants', ['detailsid' => $detailsid], 'join_time ASC');
+        $records = $DB->get_records('zoom_meeting_participants', array('detailsid' => $detailsid), 'join_time ASC');
         // Initialize the data arrays, indexing them later with userids.
-        $durations = [];
-        $join = [];
-        $leave = [];
+        $durations = array();
+        $join = array();
+        $leave = array();
         // Looping the data to calculate the duration of each user.
         foreach ($records as $record) {
             $userid = $record->userid;
@@ -714,13 +714,13 @@ class get_meeting_reports extends scheduled_task {
         $alreadygraded = 0;
 
         // Array of unidentified users that need to be graded manually.
-        $needgrade = [];
+        $needgrade = array();
 
         // Array of found user ids.
-        $found = [];
+        $found = array();
 
         // Array of non-enrolled users.
-        $notenrolled = [];
+        $notenrolled = array();
 
         // Now check the duration for each user and grade them according to it.
         foreach ($durations as $userid => $userduration) {
@@ -728,7 +728,7 @@ class get_meeting_reports extends scheduled_task {
             $newgrade = min($userduration * $grademax / $meetingduration, $grademax);
 
             // Double check that this is a Moodle user.
-            if (is_integer($userid) && (isset($found[$userid]) || $DB->record_exists('user', ['id' => $userid]))) {
+            if (is_integer($userid) && (isset($found[$userid]) || $DB->record_exists('user', array('id' => $userid)))) {
                 // Successfully found this user in Moodle.
                 if (!isset($found[$userid])) {
                     $found[$userid] = true;
@@ -744,14 +744,14 @@ class get_meeting_reports extends scheduled_task {
                     // Compare with the old grade and only update if the new grade is higher.
                     // Use number_format because the old stored grade only contains 5 decimals.
                     if (empty($oldgrade) || $oldgrade < number_format($newgrade, 5)) {
-                        $gradegrade = [
+                        $gradegrade = array(
                             'rawgrade' => $newgrade,
                             'userid' => $userid,
                             'usermodified' => $userid,
                             'dategraded' => '',
                             'feedbackformat' => '',
                             'feedback' => '',
-                        ];
+                        );
 
                         zoom_grade_item_update($zoomrecord, $gradegrade);
                         $graded++;
@@ -771,17 +771,17 @@ class get_meeting_reports extends scheduled_task {
             } else {
                 // This means that this user was not identified.
                 // Provide information about participants that need to be graded manually.
-                $a = [
+                $a = array(
                     'userid' => $userid,
                     'grade' => $newgrade,
-                ];
+                );
                 $needgrade[] = get_string('nonrecognizedusergrade', 'mod_zoom', $a);
             }
         }
 
         // Get the list of users who clicked join meeting and were not recognized by the participant report.
         $allusers = $this->get_users_clicked_join($zoomrecord);
-        $notfound = [];
+        $notfound = array();
         foreach ($allusers as $userid) {
             if (!isset($found[$userid])) {
                 $notfound[$userid] = fullname(core_user::get_user($userid));
@@ -791,7 +791,7 @@ class get_meeting_reports extends scheduled_task {
         // Try not to spam the instructors, only notify them when grades have changed.
         if ($graded > 0) {
             // Sending a notification to teachers in this course about grades, and users that need to be graded manually.
-            $notifydata = [
+            $notifydata = array(
                 'graded' => $graded,
                 'alreadygraded' => $alreadygraded,
                 'needgrade' => $needgrade,
@@ -801,7 +801,7 @@ class get_meeting_reports extends scheduled_task {
                 'name' => $zoomrecord->name,
                 'notfound' => $notfound,
                 'notenrolled' => $notenrolled,
-            ];
+            );
             $this->notify_teachers($notifydata);
         }
     }
@@ -883,16 +883,16 @@ class get_meeting_reports extends scheduled_task {
         // Grading item url.
         $gurl = new moodle_url(
             '/grade/report/singleview/index.php',
-            [
+            array(
                 'id' => $courseid,
                 'item' => 'grade',
                 'itemid' => $itemid,
-            ]
+            )
         );
         $gradeurl = html_writer::link($gurl, get_string('gradinglink', 'mod_zoom'));
 
         // Zoom instance url.
-        $zurl = new moodle_url('/mod/zoom/view.php', ['id' => $zoomid]);
+        $zurl = new moodle_url('/mod/zoom/view.php', array('id' => $zoomid));
         $zoomurl = html_writer::link($zurl, $name);
 
         // Data object used in lang strings.
@@ -913,7 +913,7 @@ class get_meeting_reports extends scheduled_task {
         if (!empty($notfound)) {
             $a->notfound = get_string('grading_notfound', 'mod_zoom');
             foreach ($notfound as $userid => $fullname) {
-                $params = ['item' => 'user', 'id' => $courseid, 'userid' => $userid];
+                $params = array('item' => 'user', 'id' => $courseid, 'userid' => $userid);
                 $url = new moodle_url('/grade/report/singleview/index.php', $params);
                 $userurl = html_writer::link($url, $fullname . ' (' . $userid . ')');
                 $a->notfound .= '<br> ' . $userurl;
@@ -924,7 +924,7 @@ class get_meeting_reports extends scheduled_task {
         if (!empty($notenrolled)) {
             $a->notenrolled = get_string('grading_notenrolled', 'mod_zoom');
             foreach ($notenrolled as $userid => $fullname) {
-                $userurl = new moodle_url('/user/profile.php', ['id' => $userid]);
+                $userurl = new moodle_url('/user/profile.php', array('id' => $userid));
                 $profile = html_writer::link($userurl, $fullname);
                 $a->notenrolled .= '<br>' . $profile;
             }
@@ -948,9 +948,9 @@ class get_meeting_reports extends scheduled_task {
         $message->contexturl = $gurl; // This link redirect the teacher to the page of item's grades.
         $message->contexturlname = get_string('gradinglink', 'mod_zoom');
         // Email content.
-        $content = ['*' => ['header' => $message->subject, 'footer' => '']];
+        $content = array('*' => ['header' => $message->subject, 'footer' => '']);
         $message->set_additional_content('email', $content);
-        $messageids = [];
+        $messageids = array();
         if (!empty($teachers)) {
             foreach ($teachers as $teacher) {
                 $message->userto = $teacher;
@@ -1003,10 +1003,10 @@ class get_meeting_reports extends scheduled_task {
         }
 
         // Copy values that are named differently.
-        $normalizedmeeting->participants_count = $meeting->participants ?? $meeting->participants_count;
+        $normalizedmeeting->participants_count = isset($meeting->participants) ? $meeting->participants : $meeting->participants_count;
 
         // Dashboard API does not have total_minutes.
-        $normalizedmeeting->total_minutes = $meeting->total_minutes ?? null;
+        $normalizedmeeting->total_minutes = isset($meeting->total_minutes) ? $meeting->total_minutes : null;
 
         return $normalizedmeeting;
     }
@@ -1026,19 +1026,19 @@ class get_meeting_reports extends scheduled_task {
 
         $reader = array_pop($readers);
         if ($reader === null) {
-            return [];
+            return array();
         }
 
-        $params = [
+        $params = array(
             'courseid' => $zoomrecord->course,
             'objectid' => $zoomrecord->id,
-        ];
+        );
         $selectwhere = "eventname = '\\\\mod_zoom\\\\event\\\\join_meeting_button_clicked'
             AND courseid = :courseid
             AND objectid = :objectid";
         $events = $reader->get_events_select($selectwhere, $params, 'userid ASC', 0, 0);
 
-        $userids = [];
+        $userids = array();
         foreach ($events as $event) {
             if (
                 $event->other['meetingid'] === $zoomrecord->meeting_id &&

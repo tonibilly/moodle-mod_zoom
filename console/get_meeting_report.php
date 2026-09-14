@@ -29,7 +29,7 @@ $courseid = required_param('courseid', PARAM_INT);
 $startdate = optional_param('start', date('Y-m-d', strtotime('-3 days')), PARAM_ALPHANUMEXT);
 $enddate = optional_param('end', date('Y-m-d'), PARAM_ALPHANUMEXT);
 
-$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
+$course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
 require_course_login($course);
 
@@ -42,7 +42,7 @@ $PAGE->set_url('/mod/zoom/console/');
 
 echo html_writer::tag('h1', get_string('getmeetingreports', 'mod_zoom'));
 echo '<pre>';
-$hostuuids = $DB->get_fieldset_select('zoom', 'DISTINCT host_id', 'course = ?', [$courseid]);
+$hostuuids = $DB->get_fieldset_select('zoom', 'DISTINCT host_id', 'course = ?', array($courseid));
 $meetingtask = new \mod_zoom\task\get_meeting_reports();
 $meetingtask->execute($startdate, $enddate, $hostuuids);
 echo '</pre>';

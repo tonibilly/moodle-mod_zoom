@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$messageproviders = [
+$messageproviders = array(
     'teacher_notification' => [],
     // The ical notifications task messages.
     'ical_notifications' => [
@@ -35,4 +35,4 @@ $messageproviders = [
             'airnotifier' => MESSAGE_DISALLOWED,
         ],
     ],
-];
+);

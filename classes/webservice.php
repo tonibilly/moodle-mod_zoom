@@ -22,19 +22,11 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_zoom;
-
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/zoom/lib.php');
 require_once($CFG->dirroot . '/mod/zoom/locallib.php');
 require_once($CFG->libdir . '/filelib.php');
-
-use cache;
-use core_user;
-use curl;
-use moodle_exception;
-use stdClass;
 
 /**
  * Web service class.
@@ -44,22 +36,24 @@ class webservice {
      * API calls: maximum number of retries.
      * @var int
      */
-    public const MAX_RETRIES = 5;
+    const MAX_RETRIES = 5;
 
     /**
-     * Default meeting_password_requirement object.
-     * @var array
+     * Get default meeting password requirement array.
+     * @return array
      */
-    public const DEFAULT_MEETING_PASSWORD_REQUIREMENT = [
-        'length' => 0,
-        'consecutive_characters_length' => 0,
-        'have_letter' => false,
-        'have_number' => false,
-        'have_upper_and_lower_characters' => false,
-        'have_special_character' => false,
-        'only_allow_numeric' => false,
-        'weak_enhance_detection' => false,
-    ];
+    public static function get_default_meeting_password_requirement() {
+        return array(
+            'length' => 0,
+            'consecutive_characters_length' => 0,
+            'have_letter' => false,
+            'have_number' => false,
+            'have_upper_and_lower_characters' => false,
+            'have_special_character' => false,
+            'only_allow_numeric' => false,
+            'weak_enhance_detection' => false,
+        );
+    }
 
     /**
      * Client ID
@@ -134,11 +128,11 @@ class webservice {
     public function __construct() {
         $config = get_config('zoom');
 
-        $requiredfields = [
+        $requiredfields = array(
             'clientid',
             'clientsecret',
             'accountid',
-        ];
+        );
 
         try {
             // Get and remember each required field.
@@ -157,7 +151,7 @@ class webservice {
             if (!empty($config->utmost)) {
                 $this->recyclelicenses = $config->utmost;
                 $this->instanceusers = !empty($config->instanceusers);
-                $this->protectedgroups = !empty($config->protectedgroups) ? explode(',', $config->protectedgroups) : [];
+                $this->protectedgroups = !empty($config->protectedgroups) ? explode(',', $config->protectedgroups) : array();
             }
 
             if ($this->recyclelicenses) {
@@ -205,7 +199,7 @@ class webservice {
             $cfg->proxytype = $CFG->proxytype;
 
             // Parse string as host:port, delimited by a colon (:).
-            [$host, $port] = explode(':', $proxyhost);
+            list($host, $port) = explode(':', $proxyhost);
 
             // Temporarily set new values on the global $CFG.
             $CFG->proxyhost = $host;
@@ -219,9 +213,9 @@ class webservice {
         $curl = new curl();
 
         // Verify the peer certificate to mitigate MITM attacks.
-        $curl->setopt([
+        $curl->setopt(array(
             'CURLOPT_SSL_VERIFYPEER' => true,
-        ]);
+        ));
 
         if (!empty($proxyhost)) {
             // Restore the stored global proxy settings from above.
@@ -244,7 +238,7 @@ class webservice {
      * @return stdClass The call's result in JSON format.
      * @throws moodle_exception Moodle exception is thrown for curl errors.
      */
-    private function make_call($path, $data = [], $method = 'get') {
+    private function make_call($path, $data = array(), $method = 'get') {
         $url = $this->apiurl . $path;
         $method = strtolower($method);
 
@@ -276,7 +270,8 @@ class webservice {
 
         $response = json_decode($rawresponse);
 
-        $httpstatus = $curl->get_info()['http_code'];
+        $info = $curl->get_info();
+        $httpstatus = $info['http_code'];
 
         if ($httpstatus >= 400) {
             switch ($httpstatus) {
@@ -364,7 +359,7 @@ class webservice {
      * @see make_call()
      */
     private function make_paginated_call($url, $data, $datatoget) {
-        $aggregatedata = [];
+        $aggregatedata = array();
         $data['page_size'] = ZOOM_MAX_RECORDS_PER_CALL;
         do {
             $callresult = null;
@@ -399,14 +394,14 @@ class webservice {
         // Classic: user:write:admin.
         // Granular: user:write:user:admin.
         $url = 'users';
-        $data = ['action' => $action];
-        $data['user_info'] = [
+        $data = array('action' => $action);
+        $data['user_info'] = array(
             'email' => zoom_get_api_identifier($user),
             'type' => $type,
             'first_name' => $user->firstname,
             'last_name' => $user->lastname,
-            'password' => base64_encode(random_bytes(16)),
-        ];
+            'password' => base64_encode(substr(md5(uniqid(mt_rand(), true)), 0, 16)),
+        );
 
         try {
             $this->make_call($url, $data, 'post');
@@ -431,7 +426,7 @@ class webservice {
         if (empty(self::$userslist)) {
             // Classic: user:read:admin.
             // Granular: user:read:list_users:admin.
-            self::$userslist = $this->make_paginated_call('users', [], 'users');
+            self::$userslist = $this->make_paginated_call('users', array(), 'users');
         }
 
         return self::$userslist;
@@ -445,12 +440,13 @@ class webservice {
      * @return bool Whether the paid user license limit has been reached.
      */
     private function paid_user_limit_reached() {
+        global $DB;
         $userslist = $this->list_users();
         $numusers = 0;
         foreach ($userslist as $user) {
             if ($user->type != ZOOM_USER_TYPE_BASIC) {
                 // Count the user if we're including all users or if the user is on this instance.
-                if (!$this->instanceusers || core_user::get_user_by_email($user->email)) {
+                if (!$this->instanceusers || $DB->get_record('user', array('email' => $user->email, 'deleted' => 0))) {
                     $numusers++;
                     if ($numusers >= $this->numlicenses) {
                         return true;
@@ -468,7 +464,8 @@ class webservice {
      * @return string|false If user is found, returns the User ID. Otherwise, returns false.
      */
     private function get_least_recently_active_paid_user_id() {
-        $usertimes = [];
+        global $DB;
+        $usertimes = array();
 
         // Classic: user:read:admin.
         // Granular: user:read:list_users:admin.
@@ -481,7 +478,8 @@ class webservice {
             }
 
             // Skip the users of protected groups.
-            if (!empty(array_intersect($this->protectedgroups, $user->group_ids ?? []))) {
+            $groupids = isset($user->group_ids) ? $user->group_ids : array();
+            if (!empty(array_intersect($this->protectedgroups, $groupids))) {
                 continue;
             }
 
@@ -491,7 +489,7 @@ class webservice {
             }
 
             // Count the user only if we're including all users or if the user is on this instance.
-            if (!$this->instanceusers || core_user::get_user_by_email($user->email)) {
+            if (!$this->instanceusers || $DB->get_record('user', array('email' => $user->email, 'deleted' => 0))) {
                 $usertimes[$user->id] = strtotime($user->last_login_time);
             }
         }
@@ -509,15 +507,15 @@ class webservice {
      * @return array Group information.
      */
     public function get_groups() {
-        $groups = [];
+        $groups = array();
 
         // Classic: group:read:admin.
         // Granular: group:read:list_groups:admin.
         // Not essential scope, execute only if scope has been granted.
-        if ($this->has_scope(['group:read:list_groups:admin', 'group:read:admin'])) {
+        if ($this->has_scope(array('group:read:list_groups:admin', 'group:read:admin'))) {
             try {
                 $response = $this->make_call('/groups');
-                $groups = $response->groups ?? [];
+                $groups = isset($response->groups) ? $response->groups : array();
             } catch (moodle_exception $error) {
                 // Only available for Paid accounts, so ignore error.
                 $response = '';
@@ -563,7 +561,7 @@ class webservice {
 
         // Set a default meeting password requirment if it is not present.
         if (!isset($meetingsecurity->meeting_password_requirement)) {
-            $meetingsecurity->meeting_password_requirement = (object) self::DEFAULT_MEETING_PASSWORD_REQUIREMENT;
+            $meetingsecurity->meeting_password_requirement = (object) self::get_default_meeting_password_requirement();
         }
 
         // Set a default encryption setting if it is not present.
@@ -611,8 +609,8 @@ class webservice {
         // Granular: user:read:list_schedulers:admin.
         $url = "users/{$identifier}/schedulers";
 
-        $schedulerswithoutkey = [];
-        $schedulers = [];
+        $schedulerswithoutkey = array();
+        $schedulers = array();
         try {
             $response = $this->make_call($url);
             if (is_array($response->schedulers)) {
@@ -624,7 +622,7 @@ class webservice {
             }
         } catch (moodle_exception $error) {
             // We don't care if this throws an exception.
-            $schedulers = [];
+            $schedulers = array();
         }
 
         return $schedulers;
@@ -643,19 +641,19 @@ class webservice {
     private function database_to_api($zoom, $cmid) {
         global $CFG;
 
-        $options = [];
+        $options = array();
         if (!empty($cmid)) {
-            $options['context'] = \context_module::instance($cmid);
+            $options['context'] = context_module::instance($cmid);
         }
 
-        $data = [
+        $data = array(
             // Process the meeting topic with proper filter.
             'topic' => zoom_apply_filter_on_meeting_name($zoom->name, $options),
-            'settings' => [
+            'settings' => array(
                 'host_video' => (bool) ($zoom->option_host_video),
                 'audio' => $zoom->option_audio,
-            ],
-        ];
+            ),
+        );
         if (isset($zoom->intro)) {
             // Process the description text with proper filter and then convert to plain text.
             $data['agenda'] = substr(content_to_text(format_text(
@@ -783,7 +781,7 @@ class webservice {
 
         // Add tracking field to data.
         $defaulttrackingfields = zoom_clean_tracking_fields();
-        $tfarray = [];
+        $tfarray = array();
         foreach ($defaulttrackingfields as $key => $defaulttrackingfield) {
             if (isset($zoom->$key)) {
                 $tf = new stdClass();
@@ -796,9 +794,9 @@ class webservice {
         $data['tracking_fields'] = $tfarray;
 
         if (get_config('zoom', 'preassignbreakoutrooms') && isset($zoom->breakoutrooms)) {
-            $breakoutroom = ['enable' => true, 'rooms' => $zoom->breakoutrooms];
+            $breakoutroom = array('enable' => true, 'rooms' => $zoom->breakoutrooms);
         } else {
-            $breakoutroom = ['enable' => false];
+            $breakoutroom = array('enable' => false);
         }
         $data['settings']['breakout_room'] = $breakoutroom;
 
@@ -821,7 +819,7 @@ class webservice {
                 $leastrecentlyactivepaiduserid = $this->get_least_recently_active_paid_user_id();
                 // Changes least_recently_active_user to a basic user so we can use their license.
                 if ($leastrecentlyactivepaiduserid) {
-                    $this->make_call("users/$leastrecentlyactivepaiduserid", ['type' => ZOOM_USER_TYPE_BASIC], 'patch');
+                    $this->make_call("users/$leastrecentlyactivepaiduserid", array('type' => ZOOM_USER_TYPE_BASIC), 'patch');
                     $licenseisavailable = true;
                 }
             }
@@ -830,7 +828,7 @@ class webservice {
             // Classic: user:write:admin.
             // Granular: user:update:user:admin.
             if ($licenseisavailable) {
-                $this->make_call("users/$zoomuserid", ['type' => ZOOM_USER_TYPE_PRO], 'patch');
+                $this->make_call("users/$zoomuserid", array('type' => ZOOM_USER_TYPE_PRO), 'patch');
             }
         }
     }
@@ -942,7 +940,7 @@ class webservice {
         // Classic: report:read:admin.
         // Granular: report:read:user:admin.
         $url = 'report/users/' . $userid . '/meetings';
-        $data = ['from' => $from, 'to' => $to];
+        $data = array('from' => $from, 'to' => $to);
         return $this->make_paginated_call($url, $data, 'meetings');
     }
 
@@ -960,7 +958,7 @@ class webservice {
         // Classic: webinar:read:admin.
         // Granular: webinar:read:list_webinars:admin.
         $url = 'users/' . $userid . ($webinar ? '/webinars' : '/meetings');
-        $instances = $this->make_paginated_call($url, [], ($webinar ? 'webinars' : 'meetings'));
+        $instances = $this->make_paginated_call($url, array(), ($webinar ? 'webinars' : 'meetings'));
         return $instances;
     }
 
@@ -976,33 +974,33 @@ class webservice {
         $meetingtype = ($webinar ? 'webinars' : 'meetings');
         $meetingtypesingular = ($webinar ? 'webinar' : 'meeting');
 
-        $reportscopes = [
+        $reportscopes = array(
             // Classic.
             'report:read:admin',
 
             // Granular.
             'report:read:list_' . $meetingtypesingular . '_participants:admin',
-        ];
+        );
 
-        $dashboardscopes = [
+        $dashboardscopes = array(
             // Classic.
             'dashboard_' . $meetingtype . ':read:admin',
 
             // Granular.
             'dashboard:read:list_' . $meetingtypesingular . '_participants:admin',
-        ];
+        );
 
         if ($this->has_scope($reportscopes)) {
             $apitype = 'report';
-            $data = [];
+            $data = array();
         } else if ($this->has_scope($dashboardscopes)) {
             $apitype = 'metrics';
-            $data = [
+            $data = array(
                 'type' => 'past',
-            ];
+            );
         } else {
             mtrace('Missing OAuth scopes required for reports.');
-            return [];
+            return array();
         }
 
         $url = $apitype . '/' . $meetingtype . '/' . $meetinguuid . '/participants';
@@ -1019,8 +1017,8 @@ class webservice {
     public function get_active_hosts_uuids($from, $to) {
         // Classic: report:read:admin.
         // Granular: report:read:list_users:admin.
-        $users = $this->make_paginated_call('report/users', ['type' => 'active', 'from' => $from, 'to' => $to], 'users');
-        $uuids = [];
+        $users = $this->make_paginated_call('report/users', array('type' => 'active', 'from' => $from, 'to' => $to), 'users');
+        $uuids = array();
         foreach ($users as $user) {
             $uuids[] = $user->id;
         }
@@ -1045,12 +1043,12 @@ class webservice {
         // Granular: dashboard:read:list_meetings:admin.
         return $this->make_paginated_call(
             'metrics/meetings',
-            [
+            array(
                 'type' => 'past',
                 'from' => $from,
                 'to' => $to,
                 'query_date_type' => 'end_time',
-            ],
+            ),
             'meetings'
         );
     }
@@ -1070,7 +1068,7 @@ class webservice {
     public function get_webinars($from, $to) {
         // Classic: dashboard_webinars:read:admin.
         // Granular: dashboard:read:list_webinars:admin.
-        return $this->make_paginated_call('metrics/webinars', ['type' => 'past', 'from' => $from, 'to' => $to], 'webinars');
+        return $this->make_paginated_call('metrics/webinars', array('type' => 'past', 'from' => $from, 'to' => $to), 'webinars');
     }
 
     /**
@@ -1103,7 +1101,7 @@ class webservice {
         if (substr($uuid, 0, 1) === '/' || strpos($uuid, '//') !== false) {
             // Use similar function to JS encodeURIComponent, see https://stackoverflow.com/a/1734255/6001.
             $encodeuricomponent = function ($str) {
-                $revert = ['%21' => '!', '%2A' => '*', '%27' => "'", '%28' => '(', '%29' => ')'];
+                $revert = array('%21' => '!', '%2A' => '*', '%27' => "'", '%28' => '(', '%29' => ')');
                 return strtr(rawurlencode($str), $revert);
             };
             $uuid = $encodeuricomponent($encodeuricomponent($uuid));
@@ -1122,17 +1120,17 @@ class webservice {
      * @throws moodle_exception
      */
     public function get_recording_url_list($meetingid) {
-        $recordings = [];
+        $recordings = array();
 
         // Only pick the video recording and audio only recordings.
         // The transcript is available in both of these, so the extra file is unnecessary.
-        $allowedrecordingtypes = [
+        $allowedrecordingtypes = array(
             'MP4' => 'video',
             'M4A' => 'audio',
             'TRANSCRIPT' => 'transcript',
             'CHAT' => 'chat',
             'CC' => 'captions',
-        ];
+        );
 
         // Classic: recording:read:admin.
         // Granular: cloud_recording:read:list_recording_files:admin.
@@ -1142,7 +1140,7 @@ class webservice {
             $response = $this->make_call($url);
         } catch (not_found_exception $e) {
             // If the meeting was not found (1001) or there are no recordings (3301), return an empty array.
-            return [];
+            return array();
         }
 
         if (empty($response->recording_files)) {
@@ -1158,14 +1156,14 @@ class webservice {
             }
         } else {
             foreach ($response->recording_files as $recording) {
-                $url = $recording->play_url ?? $recording->download_url ?? null;
+                $url = isset($recording->play_url) ? $recording->play_url : (isset($recording->download_url) ? $recording->download_url : null);
                 if (!empty($url) && isset($allowedrecordingtypes[$recording->file_type])) {
                     $recordinginfo = new stdClass();
                     $recordinginfo->recordingid = $recording->id;
                     $recordinginfo->meetinguuid = $response->uuid;
                     $recordinginfo->url = $url;
                     $recordinginfo->filetype = $recording->file_type;
-                    $recordinginfo->recordingtype = $recording->recording_type ?? 'null';
+                    $recordinginfo->recordingtype = isset($recording->recording_type) ? $recording->recording_type : 'null';
                     $recordinginfo->passcode = $response->password;
                     $recordinginfo->recordingstart = strtotime($recording->recording_start);
 
@@ -1186,28 +1184,28 @@ class webservice {
      * @return array
      */
     public function get_user_recordings($userid, $from, $to) {
-        $recordings = [];
+        $recordings = array();
 
         // Only pick the video recording and audio only recordings.
         // The transcript is available in both of these, so the extra file is unnecessary.
-        $allowedrecordingtypes = [
+        $allowedrecordingtypes = array(
             'MP4' => 'video',
             'M4A' => 'audio',
             'TRANSCRIPT' => 'transcript',
             'CHAT' => 'chat',
             'CC' => 'captions',
-        ];
+        );
 
         try {
             // Classic: recording:read:admin.
             // Granular: cloud_recording:read:list_user_recordings:admin.
             $url = 'users/' . $userid . '/recordings';
-            $data = ['from' => $from, 'to' => $to];
+            $data = array('from' => $from, 'to' => $to);
             $response = $this->make_paginated_call($url, $data, 'meetings');
 
             foreach ($response as $meeting) {
                 foreach ($meeting->recording_files as $recording) {
-                    $url = $recording->play_url ?? $recording->download_url ?? null;
+                    $url = isset($recording->play_url) ? $recording->play_url : (isset($recording->download_url) ? $recording->download_url : null);
                     if (!empty($url) && isset($allowedrecordingtypes[$recording->file_type])) {
                         $recordinginfo = new stdClass();
                         $recordinginfo->recordingid = $recording->id;
@@ -1215,7 +1213,7 @@ class webservice {
                         $recordinginfo->meetinguuid = $meeting->uuid;
                         $recordinginfo->url = $url;
                         $recordinginfo->filetype = $recording->file_type;
-                        $recordinginfo->recordingtype = $recording->recording_type ?? 'null';
+                        $recordinginfo->recordingtype = isset($recording->recording_type) ? $recording->recording_type : 'null';
                         $recordinginfo->recordingstart = strtotime($recording->recording_start);
 
                         $recordings[$recording->id] = $recordinginfo;
@@ -1224,7 +1222,7 @@ class webservice {
             }
         } catch (moodle_exception $error) {
             // No recordings found for this user.
-            $recordings = [];
+            $recordings = array();
         }
 
         return $recordings;
@@ -1310,15 +1308,15 @@ class webservice {
         $curl->setHeader('Accept: application/json');
 
         // Force HTTP/1.1 to avoid HTTP/2 "stream not closed" issue.
-        $curl->setopt([
-            'CURLOPT_HTTP_VERSION' => \CURL_HTTP_VERSION_1_1,
-        ]);
+        $curl->setopt(array(
+            'CURLOPT_HTTP_VERSION' => CURL_HTTP_VERSION_1_1,
+        ));
 
         $timecalled = time();
-        $data = [
+        $data = array(
             'grant_type' => 'account_credentials',
             'account_id' => $this->accountid,
-        ];
+        );
         $response = $this->make_curl_call($curl, 'post', 'https://zoom.us/oauth/token', $data);
 
         if ($curl->get_errno()) {
@@ -1337,8 +1335,8 @@ class webservice {
         $this->scopes = $scopes;
 
         // Assume that we are using granular scopes.
-        $requiredscopes = [
-            'granular' => [
+        $requiredscopes = array(
+            'granular' => array(
                 'meeting:read:meeting:admin',
                 'meeting:read:invitation:admin',
                 'meeting:delete:meeting:admin',
@@ -1347,13 +1345,13 @@ class webservice {
                 'user:read:list_schedulers:admin',
                 'user:read:settings:admin',
                 'user:read:user:admin',
-            ],
-            'classic' => [
+            ),
+            'classic' => array(
                 'meeting:read:admin',
                 'meeting:write:admin',
                 'user:read:admin',
-            ],
-        ];
+            ),
+        );
 
         $missingscopes = $this->check_scopes($requiredscopes);
 
@@ -1370,11 +1368,11 @@ class webservice {
             $expires = 3599 + $timecalled;
         }
 
-        $cache->set_many([
+        $cache->set_many(array(
             'accesstoken' => $token,
             'expires' => $expires,
             'scopes' => $scopes,
-        ]);
+        ));
 
         return $token;
     }

@@ -28,17 +28,17 @@ require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 
 // Now get cli options.
-[$options, $unrecognized] = cli_get_params(
-    [
+list($options, $unrecognized) = cli_get_params(
+    array(
         'help' => false,
         'start' => false,
         'end' => false,
         'hostuuid' => false,
         'courseid' => false,
-    ],
-    [
+    ),
+    array(
         'h' => 'help',
-    ]
+    )
 );
 
 if ($unrecognized) {
@@ -64,10 +64,10 @@ Example:
 
 $hostuuids = null;
 if (!empty($options['hostuuid'])) {
-    $hostuuids = [$options['hostuuid']];
+    $hostuuids = array($options['hostuuid']);
 } else if (!empty($options['courseid'])) {
     // Find all hosts for course.
-    $hostuuids = $DB->get_fieldset_select('zoom', 'DISTINCT host_id', 'course=:courseid', ['courseid' => $options['courseid']]);
+    $hostuuids = $DB->get_fieldset_select('zoom', 'DISTINCT host_id', 'course=:courseid', array('courseid' => $options['courseid']));
     if (empty($hostuuids)) {
         cli_writeln(get_string('nozoomsfound', 'mod_zoom'));
         cli_error('No hosts found for course');
@@ -77,6 +77,7 @@ if (!empty($options['hostuuid'])) {
 // Turn on debugging so we can see the detailed progress.
 set_debugging(DEBUG_DEVELOPER, true);
 
+require_once($CFG->dirroot . '/mod/zoom/classes/task/get_meeting_reports.php');
 $meetingtask = new mod_zoom\task\get_meeting_reports();
 $meetingtask->execute($options['start'], $options['end'], $hostuuids);
 

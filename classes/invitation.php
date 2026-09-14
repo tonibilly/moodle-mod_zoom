@@ -37,7 +37,7 @@ class invitation {
      * Invitation settings prefix.
      * @var string
      */
-    public const PREFIX = 'invitation_';
+    const PREFIX = 'invitation_';
 
     /** @var string|null $invitation The unaltered zoom invitation text. */
     private $invitation;
@@ -60,9 +60,9 @@ class invitation {
      *
      * @param int $coursemoduleid Course module where the user will view the invitation.
      * @param int|null $userid Optionally supply the intended user to view the string. Defaults to global $USER.
-     * @return ?string
+     * @return string|null
      */
-    public function get_display_string(int $coursemoduleid, ?int $userid = null) {
+    public function get_display_string($coursemoduleid, $userid = null) {
         if (empty($this->invitation)) {
             return null;
         }
@@ -78,7 +78,7 @@ class invitation {
 
         $displaystring = $this->invitation;
 
-        $removeelements = [];
+        $removeelements = array();
 
         // If setting enabled, strip the invite message.
         if (get_config('zoom', 'invitationremoveinvite')) {
@@ -124,12 +124,8 @@ class invitation {
      * @param string $invitation
      * @param string $element
      * @return string
-     *
-     * @throws \coding_exception
-     * @throws \dml_exception
-     * @throws \moodle_exception
      */
-    private function remove_element(string $invitation, string $element): string {
+    private function remove_element($invitation, $element) {
         global $PAGE;
 
         $configregex = $this->get_config_invitation_regex();
@@ -152,7 +148,7 @@ class invitation {
                 'invitationmodificationfailed',
                 'mod_zoom',
                 $PAGE->url,
-                ['element' => $element, 'pattern' => $configregex[$element]]
+                array('element' => $element, 'pattern' => $configregex[$element])
             );
         }
 
@@ -162,7 +158,7 @@ class invitation {
                 get_string(
                     'invitationmatchnotfound',
                     'mod_zoom',
-                    ['element' => $element, 'pattern' => $configregex[$element]]
+                    array('element' => $element, 'pattern' => $configregex[$element])
                 ),
                 DEBUG_DEVELOPER
             );
@@ -177,12 +173,9 @@ class invitation {
      * @param string $invitation
      * @param string $element
      * @return string
-     *
-     * @throws \coding_exception
-     * @throws \dml_exception
      */
-    private function add_paragraph_break_above_element(string $invitation, string $element): string {
-        $matches = [];
+    private function add_paragraph_break_above_element($invitation, $element) {
+        $matches = array();
         $configregex = $this->get_config_invitation_regex();
         // If no pattern found for element, return the invitation string unaltered.
         if (empty($configregex[$element])) {
@@ -196,7 +189,7 @@ class invitation {
                 get_string(
                     'invitationmodificationfailed',
                     'mod_zoom',
-                    ['element' => $element, 'pattern' => $configregex[$element]]
+                    array('element' => $element, 'pattern' => $configregex[$element])
                 ),
                 DEBUG_DEVELOPER
             );
@@ -219,12 +212,12 @@ class invitation {
      * @param string $invitation
      * @return string
      */
-    private function clean_paragraphs(string $invitation): string {
+    private function clean_paragraphs($invitation) {
         // Replace Mac/Windows carriage returns with new lines.
         $invitation = str_replace("\r\n", "\n", $invitation);
         $invitation = str_replace("\r", "\n", $invitation);
         // Trim space at the end of lines.
-        $invitation = preg_replace("/[ \t]+$/m", '', $invitation);
+        $invitation = preg_replace("/array( \t)+$/m", '', $invitation);
         // Replace breaks of more than two new lines with exactly two.
         $invitation = preg_replace("/\n\n\n+/m", "\n\n", $invitation);
         return $invitation;
@@ -234,15 +227,14 @@ class invitation {
      * Get regex patterns from site config to find the different zoom invitation elements.
      *
      * @return array
-     * @throws \dml_exception
      */
-    private function get_config_invitation_regex(): array {
+    private function get_config_invitation_regex() {
         if ($this->configregex !== null) {
             return $this->configregex;
         }
 
         $config = get_config('zoom');
-        $this->configregex = [];
+        $this->configregex = array();
         // Get the regex defined in the plugin settings for each element.
         foreach (self::get_default_invitation_regex() as $element => $pattern) {
             $settingname = self::PREFIX . $element;
@@ -255,10 +247,10 @@ class invitation {
     /**
      * Get default regex patterns to find the different zoom invitation elements.
      *
-     * @return string[]
+     * @return array
      */
-    public static function get_default_invitation_regex(): array {
-        return [
+    public static function get_default_invitation_regex() {
+        return array(
             'invite' => '/^.+is inviting you to a scheduled zoom meeting.+$/mi',
             'joinurl' => '/^join zoom meeting.*(\n.*)+?(\nmeeting id.+\npasscode.+)$/mi',
             'onetapmobile' => '/^one tap mobile.*(\n\s*\+.+)+$/mi',
@@ -266,6 +258,6 @@ class invitation {
             'sip' => '/^join by sip.*\n.+$/mi',
             'h323' => '/^join by h\.323.*(\n.*)+?(\nmeeting id.+\npasscode.+)$/mi',
             'icallink' => '/^.+download and import the following iCalendar.+$\n.+$/mi',
-        ];
+        );
     }
 }

@@ -27,7 +27,7 @@ require(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/locallib.php');
 
-[$course, $cm, $zoom] = zoom_get_instance_setup();
+list($course, $cm, $zoom) = zoom_get_instance_setup();
 
 require_login($course, true, $cm);
 
@@ -36,60 +36,54 @@ if (!get_config('zoom', 'viewrecordings')) {
 }
 
 $context = context_module::instance($cm->id);
-// Set up the page.
-$params = ['id' => $cm->id];
+$params = array('id' => $cm->id);
 $url = new moodle_url('/mod/zoom/recordings.php', $params);
 $PAGE->set_url($url);
 
 $activityname = $zoom->name;
-$PAGE->set_title(format_string("$course->shortname: $activityname", true, ['context' => $context]));
-$PAGE->set_heading(format_string($course->fullname, true, ['context' => $context]));
+$PAGE->set_title(format_string("$course->shortname: $activityname", true, array('context' => $context)));
+$PAGE->set_heading(format_string($course->fullname, true, array('context' => $context)));
 $PAGE->set_pagelayout('incourse');
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($activityname, true, ['context' => $context]));
+echo $OUTPUT->heading(format_string($activityname, true, array('context' => $context)));
 
 $iszoommanager = has_capability('mod/zoom:addinstance', $context);
 
-// Set up html table.
 $table = new html_table();
 $table->attributes['class'] = 'generaltable mod_view';
 if ($iszoommanager) {
-    $table->align = ['left', 'left', 'left', 'left'];
-    $table->head = [
+    $table->align = array('left', 'left', 'left', 'left');
+    $table->head = array(
         get_string('recordingdate', 'mod_zoom'),
         get_string('recordinglink', 'mod_zoom'),
         get_string('recordingpasscode', 'mod_zoom'),
         get_string('recordingshowtoggle', 'mod_zoom'),
-    ];
+    );
 } else {
-    $table->align = ['left', 'left', 'left'];
-    $table->head = [
+    $table->align = array('left', 'left', 'left');
+    $table->head = array(
         get_string('recordingdate', 'mod_zoom'),
         get_string('recordinglink', 'mod_zoom'),
         get_string('recordingpasscode', 'mod_zoom'),
-    ];
+    );
 }
 
-// Find all entries for this meeting in the database.
 $recordings = zoom_get_meeting_recordings_grouped($zoom->id);
 if (empty($recordings)) {
     $cell = new html_table_cell();
     $cell->colspan = count($table->head);
     $cell->text = get_string('norecordings', 'mod_zoom');
     $cell->style = 'text-align: center';
-    $row = new html_table_row([$cell]);
-    $table->data = [$row];
+    $row = new html_table_row(array($cell));
+    $table->data = array($row);
 } else {
     foreach ($recordings as $grouping) {
-        // Output the related recordings into the same row.
         $recordingdate = '';
         $recordinghtml = '';
         $recordingpasscode = '';
         $recordingshowhtml = '';
         foreach ($grouping as $recording) {
-            // If zoom admin -> show all recordings.
-            // Or if visible to students.
             if ($iszoommanager || intval($recording->showrecording) === 1) {
                 if (empty($recordingdate)) {
                     $recordingdate = date('F j, Y, g:i:s a \P\T', $recording->recordingstart);
@@ -101,14 +95,13 @@ if (empty($recordings)) {
 
                 if ($iszoommanager && empty($recordingshowhtml)) {
                     $isrecordinghidden = intval($recording->showrecording) === 0;
-                    $urlparams = [
+                    $urlparams = array(
                         'id' => $cm->id,
                         'meetinguuid' => $recording->meetinguuid,
                         'recordingstart' => $recording->recordingstart,
                         'showrecording' => ($isrecordinghidden) ? 1 : 0,
                         'sesskey' => sesskey(),
-                    ];
-                    // If the user is a zoom admin, show the button to toggle whether students can see the recording or not.
+                    );
                     $recordingshowurl = new moodle_url('/mod/zoom/showrecording.php', $urlparams);
                     $recordingshowtext = get_string('recordinghide', 'mod_zoom');
                     if ($isrecordinghidden) {
@@ -123,28 +116,26 @@ if (empty($recordings)) {
                 }
 
                 $recordingname = trim($recording->name) . ' (' . zoom_get_recording_type_string($recording->recordingtype) . ')';
-                $params = ['id' => $cm->id, 'recordingid' => $recording->id];
+                $params = array('id' => $cm->id, 'recordingid' => $recording->id);
                 $recordingurl = new moodle_url('/mod/zoom/loadrecording.php', $params);
                 $recordinglink = html_writer::link($recordingurl, $recordingname);
-                $recordinglinkhtml = html_writer::span($recordinglink, 'recording-link', ['style' => 'margin-right:1rem']);
-                $recordinghtml .= html_writer::div($recordinglinkhtml, 'recording', ['style' => 'margin-bottom:.5rem']);
+                $recordinglinkhtml = html_writer::span($recordinglink, 'recording-link', array('style' => 'margin-right:1rem'));
+                $recordinghtml .= html_writer::div($recordinglinkhtml, 'recording', array('style' => 'margin-bottom:.5rem'));
             }
         }
 
-        // Output only one row per grouping.
-        $table->data[] = [$recordingdate, $recordinghtml, s($recordingpasscode), $recordingshowhtml];
+        $table->data[] = array($recordingdate, $recordinghtml, s($recordingpasscode), $recordingshowhtml);
     }
 }
 
 /**
  * Get the display name for a Zoom recording type.
  *
- * @package mod_zoom
  * @param string $recordingtype Zoom recording type.
  * @return string
  */
 function zoom_get_recording_type_string($recordingtype) {
-    $recordingtypestringmap = [
+    $recordingtypestringmap = array(
         'active_speaker' => 'recordingtype_active_speaker',
         'audio_interpretation' => 'recordingtype_audio_interpretation',
         'audio_only' => 'recordingtype_audio_only',
@@ -164,9 +155,8 @@ function zoom_get_recording_type_string($recordingtype) {
         'summary_next_steps' => 'recordingtype_summary_next_steps',
         'summary_smart_chapters' => 'recordingtype_summary_smart_chapters',
         'timeline' => 'recordingtype_timeline',
-    ];
+    );
 
-    // Return some default string in case new recordingtype values are added in the future.
     if (empty($recordingtypestringmap[$recordingtype])) {
         return $recordingtype;
     }

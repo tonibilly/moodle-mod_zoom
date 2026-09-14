@@ -68,7 +68,7 @@ class get_meeting_recordings extends scheduled_task {
         }
 
         // Required scopes for meeting recordings.
-        $requiredscopes = [
+        $requiredscopes = array(
             'classic' => [
                 'recording:read:admin',
             ],
@@ -76,7 +76,7 @@ class get_meeting_recordings extends scheduled_task {
                 'cloud_recording:read:list_user_recordings:admin',
                 'cloud_recording:read:recording_settings:admin',
             ],
-        ];
+        );
 
         // Checking for missing scopes.
         $missingscopes = $service->check_scopes($requiredscopes);
@@ -102,7 +102,7 @@ class get_meeting_recordings extends scheduled_task {
         $from = gmdate('Y-m-d', strtotime('-1 day', $now));
         $to = gmdate('Y-m-d', strtotime('+1 day', $now));
 
-        $hostmeetings = [];
+        $hostmeetings = array();
 
         foreach ($localmeetings as $zoom) {
             // Only get recordings for this meeting if its recurring or already finished.
@@ -116,7 +116,7 @@ class get_meeting_recordings extends scheduled_task {
             return;
         }
 
-        $meetingpasscodes = [];
+        $meetingpasscodes = array();
         $localrecordings = zoom_get_meeting_recordings_grouped();
 
         foreach ($hostmeetings as $hostid => $meetings) {

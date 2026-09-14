@@ -41,10 +41,10 @@ if ($id) {
         redirect($meetinginfo['nexturl']);
     } else {
         // Get redirect URL.
-        $unavailabilityurl = new moodle_url('/mod/zoom/view.php', ['id' => $id]);
+        $unavailabilityurl = new moodle_url('/mod/zoom/view.php', array('id' => $id));
 
         // Redirect the user back to the activity overview page.
-        redirect($unavailabilityurl, $meetinginfo['error'], null, \core\output\notification::NOTIFY_ERROR);
+        redirect($unavailabilityurl, $meetinginfo['error'], 3);
     }
 } else {
     throw new moodle_exception('zoomerr_id_missing', 'mod_zoom');

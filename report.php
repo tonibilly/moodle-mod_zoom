@@ -30,42 +30,42 @@ require_once($CFG->libdir . '/moodlelib.php');
 
 require_login();
 // Additional access checks in zoom_get_instance_setup().
-[$course, $cm, $zoom] = zoom_get_instance_setup();
+list($course, $cm, $zoom) = zoom_get_instance_setup();
 
 // Check capability.
 $context = context_module::instance($cm->id);
 require_capability('mod/zoom:addinstance', $context);
 
-$PAGE->set_url('/mod/zoom/report.php', ['id' => $cm->id]);
+$PAGE->set_url('/mod/zoom/report.php', array('id' => $cm->id));
 
 $activityname = $zoom->name;
 $strtitle = get_string('sessions', 'mod_zoom');
 $PAGE->navbar->add($strtitle);
-$PAGE->set_title(format_string("$course->shortname: $activityname", true, ['context' => $context]));
-$PAGE->set_heading(format_string($course->fullname, true, ['context' => $context]));
+$PAGE->set_title(format_string("$course->shortname: $activityname", true, array('context' => $context)));
+$PAGE->set_heading(format_string($course->fullname, true, array('context' => $context)));
 $PAGE->set_pagelayout('incourse');
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($activityname, true, ['context' => $context]));
+echo $OUTPUT->heading(format_string($activityname, true, array('context' => $context)));
 echo $OUTPUT->heading($strtitle, 4);
 
 $sessions = zoom_get_sessions_for_display($zoom->id);
 if (!empty($sessions)) {
     $maskparticipantdata = get_config('zoom', 'maskparticipantdata');
     $table = new html_table();
-    $table->head = [
+    $table->head = array(
         get_string('title', 'mod_zoom'),
         get_string('starttime', 'mod_zoom'),
         get_string('endtime', 'mod_zoom'),
         get_string('duration', 'mod_zoom'),
         get_string('participants', 'mod_zoom'),
-    ];
-    $table->align = ['left', 'left', 'left', 'left', 'left'];
+    );
+    $table->align = array('left', 'left', 'left', 'left', 'left');
     $format = get_string('strftimedatetimeshort', 'langconfig');
 
     foreach ($sessions as $uuid => $meet) {
-        $row = [];
-        $row[] = format_string($meet['topic'], true, ['context' => $context]);
+        $row = array();
+        $row[] = format_string($meet['topic'], true, array('context' => $context));
         $row[] = $meet['starttime'];
         $row[] = $meet['endtime'];
         $row[] = format_time($meet['duration']);
@@ -73,12 +73,12 @@ if (!empty($sessions)) {
         if ($meet['count'] > 0) {
             if ($maskparticipantdata) {
                 $row[] = $meet['count']
-                         . ' ['
+                         . ' array('
                          . get_string('participantdatanotavailable', 'mod_zoom')
-                         . '] '
+                         . ') '
                          . $OUTPUT->help_icon('participantdatanotavailable', 'mod_zoom');
             } else {
-                $url = new moodle_url('/mod/zoom/participants.php', ['id' => $cm->id, 'uuid' => $uuid]);
+                $url = new moodle_url('/mod/zoom/participants.php', array('id' => $cm->id, 'uuid' => $uuid));
                 $row[] = html_writer::link($url, $meet['count']);
             }
         } else {
