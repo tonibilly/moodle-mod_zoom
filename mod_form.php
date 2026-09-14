@@ -151,7 +151,11 @@ class mod_zoom_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addRule('name', get_string('maximumchars', '', 200), 'maxlength', 200, 'client');
 
-        $this->standard_intro_elements();
+        if (method_exists($this, 'standard_intro_elements')) {
+            $this->standard_intro_elements();
+        } else {
+            $this->add_intro_editor(false);
+        }
 
         $mform->addElement('header', 'schedule', get_string('schedule', 'mod_zoom'));
         $mform->setExpanded('schedule');
@@ -602,7 +606,9 @@ class mod_zoom_mod_form extends moodleform_mod {
         $mform->setDefault('grade', false);
 
         $this->standard_coursemodule_elements();
-        $this->apply_admin_defaults();
+        if (method_exists($this, 'apply_admin_defaults')) {
+            $this->apply_admin_defaults();
+        }
 
         $this->add_action_buttons();
     }
@@ -611,7 +617,9 @@ class mod_zoom_mod_form extends moodleform_mod {
      * Add standard_grading_coursemodule_elements with grading for field.
      */
     public function standard_grading_coursemodule_elements() {
-        parent::standard_grading_coursemodule_elements();
+        if (method_exists('moodleform_mod', 'standard_grading_coursemodule_elements')) {
+            parent::standard_grading_coursemodule_elements();
+        }
         $mform = $this->_form;
         $options = array(
             'entry' => get_string('gradingentry', 'mod_zoom'),
