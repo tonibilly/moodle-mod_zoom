@@ -158,7 +158,9 @@ class mod_zoom_mod_form extends moodleform_mod {
         }
 
         $mform->addElement('header', 'schedule', get_string('schedule', 'mod_zoom'));
-        $mform->setExpanded('schedule');
+        if (method_exists($mform, 'setExpanded')) {
+            $mform->setExpanded('schedule');
+        }
 
         $starttimeoptions = array(
             'step' => 5,
@@ -362,7 +364,9 @@ class mod_zoom_mod_form extends moodleform_mod {
         $mform->setType('roomsgroups', PARAM_RAW);
 
         $mform->addElement('header', 'security', get_string('security', 'mod_zoom'));
-        $mform->setExpanded('security');
+        if (method_exists($mform, 'setExpanded')) {
+            $mform->setExpanded('security');
+        }
 
         if (isset($this->current->password)) {
             $this->current->meetingcode = $this->current->password;
@@ -478,7 +482,9 @@ class mod_zoom_mod_form extends moodleform_mod {
         $mform->addHelpButton('show_security', 'showsecurity', 'zoom');
 
         $mform->addElement('header', 'media', get_string('media', 'mod_zoom'));
-        $mform->setExpanded('media');
+        if (method_exists($mform, 'setExpanded')) {
+            $mform->setExpanded('media');
+        }
 
         $mform->addGroup(array(
             $mform->createElement('radio', 'option_host_video', '', get_string('on', 'zoom'), true),
@@ -560,7 +566,9 @@ class mod_zoom_mod_form extends moodleform_mod {
         $showalternativehosts = ($config->showalternativehosts != ZOOM_ALTERNATIVEHOSTS_DISABLE);
         if ($showschedulingprivilege || $showalternativehosts) {
             $mform->addElement('header', 'host', get_string('host', 'mod_zoom'));
-            $mform->setExpanded('host');
+            if (method_exists($mform, 'setExpanded')) {
+                $mform->setExpanded('host');
+            }
 
             if ($showalternativehosts) {
                 $mform->addElement('static', 'hostintro', '', get_string('hostintro', 'zoom'));
