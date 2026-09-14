@@ -179,10 +179,16 @@ class webservice {
      */
     protected function make_curl_call(&$curl, $method, $url, $data) {
         $method = strtolower($method);
-        if (method_exists($curl, $method)) {
-            return $curl->$method($url, $data);
+        if ($method === 'get') {
+            return $curl->get($url, $data);
+        } else if ($method === 'post') {
+            return $curl->post($url, $data);
         } else {
-            return $curl->post($url, $data, array('CUSTOMREQUEST' => strtoupper($method)));
+            $options = array(
+                'CURLOPT_CUSTOMREQUEST' => strtoupper($method),
+                'CURLOPT_POSTFIELDS' => $data
+            );
+            return $curl->request($url, $options);
         }
     }
 

@@ -81,7 +81,11 @@ $oldhead = array($strtitle, $strtime);
 $oldalign = array('left', 'left');
 
 if ($usesections) {
-    $strsectionname = get_string('sectionname', 'format_' . $course->format);
+    if (get_string_manager()->string_exists('sectionname', 'format_' . $course->format)) {
+        $strsectionname = get_string('sectionname', 'format_' . $course->format);
+    } else {
+        $strsectionname = get_string('sectionname', 'course');
+    }
     array_unshift($newhead, $strsectionname);
     array_unshift($newalign, 'center');
     array_unshift($oldhead, $strsectionname);
@@ -113,7 +117,8 @@ foreach ($zooms as $z) {
     }
 
     $url = new moodle_url('view.php', array('id' => $cm->id));
-    $row[1] = html_writer::link($url, $cm->get_formatted_name());
+    $cmname = method_exists($cm, 'get_formatted_name') ? $cm->get_formatted_name() : format_string($cm->name);
+    $row[1] = html_writer::link($url, $cmname);
     if ($z->webinar) {
         $row[1] .= " ($strwebinar)";
     }
