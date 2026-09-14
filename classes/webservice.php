@@ -657,11 +657,14 @@ class webservice {
         );
         if (isset($zoom->intro)) {
             // Process the description text with proper filter and then convert to plain text.
-            $data['agenda'] = substr(content_to_text(format_text(
-                $zoom->intro,
-                FORMAT_MOODLE,
-                $options
-            ), false), 0, 2000);
+            if (function_exists('content_to_text')) {
+                $introtext = content_to_text(format_text($zoom->intro, FORMAT_MOODLE, $options), false);
+            } else if (function_exists('html_to_text')) {
+                $introtext = html_to_text(format_text($zoom->intro, FORMAT_MOODLE, $options));
+            } else {
+                $introtext = strip_tags($zoom->intro);
+            }
+            $data['agenda'] = substr($introtext, 0, 2000);
         }
 
         if (isset($CFG->timezone) && !empty($CFG->timezone)) {
