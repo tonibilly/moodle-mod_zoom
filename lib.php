@@ -1121,12 +1121,16 @@ function zoom_build_instance_breakout_rooms_array_for_api($zoom) {
                 foreach ($zoom->roomsgroups[$roomid] as $groupid) {
                     if (isset($groups[$groupid])) {
                         $groupmembers = groups_get_members($groupid);
-                        $roomgroupsmembers[] = array_column(array_values($groupmembers), 'email');
+                        if (!empty($groupmembers)) {
+                            foreach ($groupmembers as $gm) {
+                                if (isset($gm->email)) {
+                                    $roomgroupsmembers[] = $gm->email;
+                                }
+                            }
+                        }
                         $dbroomgroupsmembers[] = $groupid;
                     }
                 }
-
-                $roomgroupsmembers = array_merge(...$roomgroupsmembers);
             }
 
             $zoomdata = array(
