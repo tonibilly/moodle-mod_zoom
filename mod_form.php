@@ -217,7 +217,7 @@ class mod_zoom_mod_form extends moodleform_mod {
         $group = array();
         foreach ($weekdayoptions as $key => $weekday) {
             $weekdayid = 'weekly_days_' . $key;
-            $group[] = $mform->createElement('advcheckbox', $weekdayid, '', $weekday, array(), array(0, $key));
+            $group[] = $mform->createElement('advcheckbox', $weekdayid, '', $weekday, array('group' => 0), array(0, $key));
         }
 
         $mform->addGroup($group, 'weekly_days_group', get_string('occurson', 'zoom'), ' ', false);
