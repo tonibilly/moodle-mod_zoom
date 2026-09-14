@@ -110,17 +110,17 @@ if (empty($recordings)) {
 
                     $btnclass = 'btn btn-';
                     $btnclass .= $isrecordinghidden ? 'dark' : 'primary';
-                    $recordingshowbutton = html_writer::div($recordingshowtext, $btnclass);
+                    $recordingshowbutton = html_writer::tag('div', $recordingshowtext, array('class' => $btnclass));
                     $recordingshowbuttonhtml = html_writer::link($recordingshowurl, $recordingshowbutton);
-                    $recordingshowhtml = html_writer::div($recordingshowbuttonhtml);
+                    $recordingshowhtml = html_writer::tag('div', $recordingshowbuttonhtml);
                 }
 
                 $recordingname = trim($recording->name) . ' (' . zoom_get_recording_type_string($recording->recordingtype) . ')';
                 $params = array('id' => $cm->id, 'recordingid' => $recording->id);
                 $recordingurl = new moodle_url('/mod/zoom/loadrecording.php', $params);
                 $recordinglink = html_writer::link($recordingurl, $recordingname);
-                $recordinglinkhtml = html_writer::span($recordinglink, 'recording-link', array('style' => 'margin-right:1rem'));
-                $recordinghtml .= html_writer::div($recordinglinkhtml, 'recording', array('style' => 'margin-bottom:.5rem'));
+                $recordinglinkhtml = html_writer::tag('span', $recordinglink, array('class' => 'recording-link', 'style' => 'margin-right:1rem'));
+                $recordinghtml .= html_writer::tag('div', $recordinglinkhtml, array('class' => 'recording', 'style' => 'margin-bottom:.5rem'));
             }
         }
 

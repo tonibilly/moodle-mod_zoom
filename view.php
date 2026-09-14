@@ -265,9 +265,9 @@ if ($zoom->show_schedule) {
 
     if (!empty($config->viewrecordings)) {
         $recordingaddurl = new moodle_url('/mod/zoom/recordings.php', array('id' => $cm->id));
-        $recordingaddbutton = html_writer::div(get_string('recordingview', 'mod_zoom'), 'btn btn-primary');
+        $recordingaddbutton = html_writer::tag('div', get_string('recordingview', 'mod_zoom'), array('class' => 'btn btn-primary'));
         $recordingaddbuttonhtml = html_writer::link($recordingaddurl, $recordingaddbutton, array('target' => '_blank'));
-        $recordinghtml = html_writer::div($recordingaddbuttonhtml);
+        $recordinghtml = html_writer::tag('div', $recordingaddbuttonhtml);
 
         $rowrecordings = new html_table_row();
         $rowrecordings->id = 'zoom_schedule-recordings';
@@ -280,7 +280,7 @@ if ($zoom->show_schedule) {
     if ($config->showdownloadical != ZOOM_DOWNLOADICAL_DISABLE && !$showrecreate && !$isrecurringnotime) {
         $icallink = new moodle_url('/mod/zoom/exportical.php', array('id' => $cm->id));
         $calendaricon = $OUTPUT->pix_icon('i/calendar', get_string('calendariconalt', 'mod_zoom'));
-        $calendarbutton = html_writer::div($calendaricon . ' ' . get_string('downloadical', 'mod_zoom'), 'btn btn-primary');
+        $calendarbutton = html_writer::tag('div', $calendaricon . ' ' . get_string('downloadical', 'mod_zoom'), array('class' => 'btn btn-primary'));
         $buttonhtml = html_writer::link((string) $icallink, $calendarbutton, array('target' => '_blank'));
         $rowaddtocalendar = new html_table_row();
         $rowaddtocalendar->id = 'zoom_schedule-addtocalendar';
@@ -508,16 +508,16 @@ if ($zoom->show_media) {
                 $strmeetinginviteshow,
                 array('id' => 'show-more-button', 'class' => 'btn btn-link pt-0 pl-0', 'onclick' => 'var el=document.getElementById("show-more-body");el.style.display=el.style.display==="none"?"block":"none";return false;')
             );
-            $meetinginvitebody = html_writer::div(
+            $meetinginvitebody = html_writer::tag(
+                'div',
                 $meetinginvitetext,
-                '',
                 array('id' => 'show-more-body', 'style' => 'display: none;')
             );
             $rowmeetinginvite = new html_table_row();
             $rowmeetinginvite->id = 'zoom_media-meetinginvite';
             $meetinginviteheader = new html_table_cell($strmeetinginvite);
             $meetinginviteheader->header = true;
-            $rowmeetinginvite->cells = array($meetinginviteheader, html_writer::div($showbutton . $meetinginvitebody, ''));
+            $rowmeetinginvite->cells = array($meetinginviteheader, html_writer::tag('div', $showbutton . $meetinginvitebody));
             $table->data[] = $rowmeetinginvite;
         }
     }
