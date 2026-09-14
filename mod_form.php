@@ -165,6 +165,7 @@ class mod_zoom_mod_form extends moodleform_mod {
         $starttimeoptions = array(
             'step' => 5,
             'defaulttime' => time() + 3600,
+            'optional' => false,
         );
         $mform->addElement('date_time_selector', 'start_time', get_string('start_time', 'zoom'), $starttimeoptions);
 
@@ -175,8 +176,11 @@ class mod_zoom_mod_form extends moodleform_mod {
             'advcheckbox',
             'recurring',
             get_string('recurringmeeting', 'zoom'),
-            get_string('recurringmeetingthisis', 'zoom')
+            get_string('recurringmeetingthisis', 'zoom'),
+            array(),
+            array(0, 1)
         );
+        $config = get_config('zoom');
         $mform->setDefault('recurring', $config->defaultrecurring);
         $mform->addHelpButton('recurring', 'recurringmeeting', 'zoom');
 
@@ -186,8 +190,9 @@ class mod_zoom_mod_form extends moodleform_mod {
             ZOOM_RECURRINGTYPE_MONTHLY => get_string('recurrence_option_monthly', 'zoom'),
             ZOOM_RECURRINGTYPE_NOTIME => get_string('recurrence_option_no_time', 'zoom'),
         );
+
         $mform->addElement('select', 'recurrence_type', get_string('recurrencetype', 'zoom'), $recurrencetype);
-        if ($config->defaultrecurring == 1) {
+        if ($config->defaultrecurring) {
             $mform->setDefault('recurrence_type', ZOOM_RECURRINGTYPE_NOTIME);
         }
         $mform->disabledIf('recurrence_type', 'recurring', 'notchecked');
@@ -205,12 +210,14 @@ class mod_zoom_mod_form extends moodleform_mod {
         $group[] = $mform->createElement('html', $htmlspantextstart . 'weekly">' . get_string('week', 'zoom') . $htmlspantextend);
         $group[] = $mform->createElement('html', $htmlspantextstart . 'monthly">' . get_string('month', 'zoom') . $htmlspantextend);
         $mform->addGroup($group, 'repeat_group', get_string('repeatinterval', 'zoom'), null, false);
+        $mform->setDefault('repeat_interval', 1);
 
         $weekdayoptions = zoom_get_weekday_options();
+
         $group = array();
         foreach ($weekdayoptions as $key => $weekday) {
             $weekdayid = 'weekly_days_' . $key;
-            $group[] = $mform->createElement('advcheckbox', $weekdayid, '', $weekday, null, array(0, $key));
+            $group[] = $mform->createElement('advcheckbox', $weekdayid, '', $weekday, array(), array(0, $key));
         }
 
         $mform->addGroup($group, 'weekly_days_group', get_string('occurson', 'zoom'), ' ', false);
@@ -234,7 +241,7 @@ class mod_zoom_mod_form extends moodleform_mod {
             'radio',
             'monthly_repeat_option',
             '',
-            get_string('day', 'calendar'),
+            get_string('day', 'zoom'),
             ZOOM_MONTHLY_REPEAT_OPTION_DAY
         );
         $group[] = $mform->createElement('select', 'monthly_day', '', $monthoptions);
