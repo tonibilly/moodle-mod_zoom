@@ -594,7 +594,9 @@ function zoom_get_monthweek_options() {
  */
 function zoom_populate_calender_item(stdClass $zoom, $occurrence = null) {
     $event = new stdClass();
-    $event->type = CALENDAR_EVENT_TYPE_ACTION;
+    if (defined('CALENDAR_EVENT_TYPE_ACTION')) {
+        $event->type = CALENDAR_EVENT_TYPE_ACTION;
+    }
     $event->modulename = 'zoom';
     $event->eventtype = 'zoom';
     $event->courseid = $zoom->course;
