@@ -84,7 +84,7 @@ if ($usesections) {
     if (get_string_manager()->string_exists('sectionname', 'format_' . $course->format)) {
         $strsectionname = get_string('sectionname', 'format_' . $course->format);
     } else {
-        $strsectionname = get_string('sectionname', 'course');
+        $strsectionname = get_string('section');
     }
     array_unshift($newhead, $strsectionname);
     array_unshift($newalign, 'center');

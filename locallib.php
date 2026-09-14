@@ -915,12 +915,25 @@ function zoom_get_api_url() {
  * @param bool $usestarturl
  * @return array $returns contains url object 'nexturl' or string 'error'
  */
+if (!function_exists('get_course')) {
+    /**
+     * Fallback for Moodle 2.4 get_course function.
+     *
+     * @param int $courseid
+     * @return stdClass
+     */
+    function get_course($courseid) {
+        global $DB;
+        return $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+    }
+}
+
 function zoom_load_meeting($id, $context, $usestarturl = true) {
     global $CFG, $DB, $USER;
     require_once($CFG->libdir . '/gradelib.php');
 
     $cm = get_coursemodule_from_id('zoom', $id, 0, false, MUST_EXIST);
-    $course = get_course($cm->course);
+    $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
     $zoom = $DB->get_record('zoom', array('id' => $cm->instance), '*', MUST_EXIST);
 
     require_login($course, true, $cm);
@@ -1004,6 +1017,7 @@ function zoom_load_meeting($id, $context, $usestarturl = true) {
     add_to_log($course->id, 'zoom', 'join', 'view.php?id=' . $cm->id, $zoom->id, $cm->id);
 
     // Track completion viewed.
+    require_once($CFG->libdir . '/completionlib.php');
     $completion = new completion_info($course);
     $completion->set_module_viewed($cm);
 

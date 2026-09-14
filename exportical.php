@@ -31,7 +31,7 @@ require_once($CFG->libdir . '/bennu/bennu.inc.php');
 $id = required_param('id', PARAM_INT);
 if ($id) {
     $cm = get_coursemodule_from_id('zoom', $id, 0, false, MUST_EXIST);
-    $course = get_course($cm->course);
+    $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
     $zoom = $DB->get_record('zoom', array('id' => $cm->instance), '*', MUST_EXIST);
 } else {
     throw new moodle_exception('zoomerr_id_missing', 'mod_zoom');
