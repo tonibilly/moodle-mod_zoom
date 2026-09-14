@@ -34,12 +34,12 @@ if ($hassiteconfig && $ADMIN->fulltree) {
     // Test whether connection works and display result to user.
     if (!CLI_SCRIPT && $PAGE->url == $CFG->wwwroot . '/' . $CFG->admin . '/settings.php?section=' . $settings->name) {
         $status = 'connectionfailed';
-        $notifyclass = notification::NOTIFY_ERROR;
+        $notifyclass = 'notifyproblem';
         $errormessage = '';
         try {
             zoom_get_user(zoom_get_api_identifier($USER));
             $status = 'connectionok';
-            $notifyclass = notification::NOTIFY_SUCCESS;
+            $notifyclass = 'notifysuccess';
         } catch (webservice_exception $error) {
             $errormessage = $error->response;
         } catch (moodle_exception $error) {
@@ -50,8 +50,7 @@ if ($hassiteconfig && $ADMIN->fulltree) {
             'zoom/connectionstatus',
             $OUTPUT->notification(
                 get_string('connectionstatus', 'mod_zoom') . ': ' . get_string($status, 'mod_zoom') . $errormessage,
-                $notifyclass,
-                false
+                $notifyclass
             ),
             ''
         ));
@@ -208,7 +207,9 @@ if ($hassiteconfig && $ADMIN->fulltree) {
         1,
         0
     ));
-    $settings->hide_if('zoom/displayleadtime', 'zoom/firstabletojoin', 'eq', 0);
+    if (method_exists($settings, 'hide_if')) {
+        $settings->hide_if('zoom/displayleadtime', 'zoom/firstabletojoin', 'eq', 0);
+    }
 
     $settings->add(new admin_setting_configcheckbox(
         'zoom/displaypassword',
@@ -351,8 +352,7 @@ if ($hassiteconfig && $ADMIN->fulltree) {
     if (empty($CFG->allowattachments)) {
         $sendicalnotificationshelp .= $OUTPUT->notification(
             get_string('sendicalnotifications_warning', 'mod_zoom'),
-            notification::NOTIFY_WARNING,
-            false
+            'notifywarning'
         );
     }
 
@@ -580,8 +580,10 @@ if ($hassiteconfig && $ADMIN->fulltree) {
     }
 
     // Extra hideif for elements which can be enabled / disabled individually.
-    $settings->hide_if('zoom/invitation_invite', 'zoom/invitationremoveinvite', 'eq', 0);
-    $settings->hide_if('zoom/invitation_icallink', 'zoom/invitationremoveicallink', 'eq', 0);
+    if (method_exists($settings, 'hide_if')) {
+        $settings->hide_if('zoom/invitation_invite', 'zoom/invitationremoveinvite', 'eq', 0);
+        $settings->hide_if('zoom/invitation_icallink', 'zoom/invitationremoveicallink', 'eq', 0);
+    }
 
     // Adding options for grading methods.
     $settings->add(new admin_setting_heading(
