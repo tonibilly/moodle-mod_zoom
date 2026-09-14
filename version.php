@@ -30,3 +30,6 @@ $plugin->release = 'v2.4-backport-1.0';
 $plugin->requires = 2012120300;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->cron = 0;
+
+// Moodle 2.4 legacy activity module version definition.
+$module = clone $plugin;
