@@ -24,6 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+if (!isset($plugin) || !is_object($plugin)) {
+    $plugin = new stdClass();
+}
+
 $plugin->component = 'mod_zoom';
 $plugin->version = 2026082400;
 $plugin->release = 'v2.4-backport-1.0';
@@ -31,5 +35,12 @@ $plugin->requires = 2012120300;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->cron = 0;
 
-// Moodle 2.4 legacy activity module version definition.
-$module = clone $plugin;
+if (!isset($module) || !is_object($module)) {
+    $module = new stdClass();
+}
+$module->version = $plugin->version;
+$module->requires = $plugin->requires;
+$module->cron = $plugin->cron;
+$module->component = $plugin->component;
+$module->maturity = $plugin->maturity;
+$module->release = $plugin->release;

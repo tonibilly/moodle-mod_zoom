@@ -25,14 +25,14 @@
 defined('MOODLE_INTERNAL') || die();
 
 $messageproviders = array(
-    'teacher_notification' => [],
+    'teacher_notification' => array(),
     // The ical notifications task messages.
-    'ical_notifications' => [
-        'defaults' => [
+    'ical_notifications' => array(
+        'defaults' => array(
             'popup' => MESSAGE_DISALLOWED,
             'email' => MESSAGE_PERMITTED + (defined('MESSAGE_DEFAULT_ENABLED') ?
                 MESSAGE_DEFAULT_ENABLED : MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF),
             'airnotifier' => MESSAGE_DISALLOWED,
-        ],
-    ],
+        ),
+    ),
 );

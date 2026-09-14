@@ -22,8 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-declare(strict_types=1);
-
 namespace mod_zoom;
 
 use core\activity_dates;
@@ -40,11 +38,11 @@ class dates extends activity_dates {
      *
      * @return array
      */
-    protected function get_dates(): array {
-        $starttime = $this->cm->customdata['start_time'] ?? null;
-        $duration = $this->cm->customdata['duration'] ?? null;
-        $recurring = $this->cm->customdata['recurring'] ?? null;
-        $recurrencetype = $this->cm->customdata['recurrence_type'] ?? null;
+    protected function get_dates() {
+        $starttime = isset($this->cm->customdata['start_time']) ? $this->cm->customdata['start_time'] : null;
+        $duration = isset($this->cm->customdata['duration']) ? $this->cm->customdata['duration'] : null;
+        $recurring = isset($this->cm->customdata['recurring']) ? $this->cm->customdata['recurring'] : null;
+        $recurrencetype = isset($this->cm->customdata['recurrence_type']) ? $this->cm->customdata['recurrence_type'] : null;
 
         // For meeting with no fixed time, no time info needed on course page.
         if ($recurring && $recurrencetype == \ZOOM_RECURRINGTYPE_NOTIME) {
