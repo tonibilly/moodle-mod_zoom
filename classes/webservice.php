@@ -178,7 +178,12 @@ class webservice {
      * @return stdClass The call's result.
      */
     protected function make_curl_call(&$curl, $method, $url, $data) {
-        return $curl->$method($url, $data);
+        if (method_exists($curl, $method)) {
+            return $curl->$method($url, $data);
+        } else {
+            $curl->setopt(array('CURLOPT_CUSTOMREQUEST' => strtoupper($method)));
+            return $curl->post($url, $data);
+        }
     }
 
     /**
