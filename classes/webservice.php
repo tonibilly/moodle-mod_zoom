@@ -479,7 +479,8 @@ class webservice {
 
             // Skip the users of protected groups.
             $groupids = isset($user->group_ids) ? $user->group_ids : array();
-            if (!empty(array_intersect($this->protectedgroups, $groupids))) {
+            $protectedmatch = array_intersect($this->protectedgroups, $groupids);
+            if (!empty($protectedmatch)) {
                 continue;
             }
 
