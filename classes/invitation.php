@@ -261,3 +261,7 @@ class invitation {
         );
     }
 }
+
+if (!class_exists('invitation')) {
+    class_alias('mod_zoom\invitation', 'invitation');
+}
